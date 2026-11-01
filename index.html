@@ -84,10 +84,15 @@ td.n{text-align:center}
 .offer{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#17202b;border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:6px}
 .ocard{background:#17202b;border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:8px}
 .ocard.sold{opacity:.4}
-.otop{display:flex;align-items:center;gap:8px}
+.otop{display:flex;align-items:flex-start;gap:8px}
 .tag{font:8px 'Press Start 2P',ui-monospace,monospace;padding:4px 6px;border-radius:3px;color:#fff;white-space:nowrap;flex:0 0 auto;align-self:flex-start}
 .tag.boost{background:#1f5aa8}.tag.unit{background:#7a3aa8}.tag.fa{background:#2b8a4a}
-.otitle{font-weight:700;flex:1}
+.otitle{font-weight:700;flex:1;min-width:0;overflow-wrap:anywhere}
+.panel,.card,.ocard{overflow-wrap:anywhere}
+.tname{width:100%;box-sizing:border-box;background:#0b1320;color:#fff;border:2px solid var(--line);border-radius:6px;padding:10px;font:inherit;font-size:15px;text-transform:uppercase;margin-top:4px}
+.rrow{display:flex;gap:6px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line);font-size:12px}
+.rrow .rn{color:var(--acc);min-width:28px}.rrow .rp{color:var(--mute);min-width:44px}.rrow .rv{margin-left:auto;font-weight:700}
+.rat{color:var(--mute);font-size:10px;padding:0 0 4px 78px;overflow-wrap:anywhere}
 .osub{color:var(--mute);margin:4px 0 0;font-size:12px}
 .cmp{display:grid;grid-template-columns:1fr auto auto auto;gap:3px 8px;font-size:12px;margin:8px 0 2px;align-items:center}
 .cmp .h{color:var(--mute)}.cmp .to{font-weight:700}.cmp .up{color:var(--ok)}.cmp .dn{color:var(--bad)}.cmp .arr{color:var(--mute)}
@@ -152,7 +157,7 @@ label.sl{display:block;margin-bottom:8px}
 
 <!-- TEMPLATE -->
 <section id="scr-template" class="screen hide">
-  <div class="panel"><span class="lbl">JERSEY COLOUR</span><div class="swatches" id="swTpl"></div></div>
+  <div class="panel"><span class="lbl">TEAM NAME</span><input class="tname" id="tnTpl" maxlength="12" placeholder="Your team name" autocomplete="off"><span class="lbl" style="margin-top:12px">JERSEY COLOUR</span><div class="swatches" id="swTpl"></div></div>
   <div class="panel"><h2>Choose a team style</h2><p class="mute">Each lifts a few spots to 58-70. Everyone else starts at 45-55. You then spend 250 FP.</p><div id="tplList"></div></div>
   <button id="tplBack" class="big">BACK</button>
 </section>
@@ -230,6 +235,7 @@ label.sl{display:block;margin-bottom:8px}
     <label class="chk" style="margin-top:8px"><input type="checkbox" id="slow"> slow-mo &nbsp; <input type="checkbox" id="fast"> fast</label>
   </div>
   <div class="panel collapse"><button class="coll" id="scoutToggle">SCOUTING REPORT (tips) ▸</button><div id="scoutBody" class="hide"><div id="gHead"></div><div id="gMatch"></div><div id="gKey" style="margin-top:8px"></div><div id="gTend" style="margin-top:8px"></div></div></div>
+  <div class="panel collapse"><button class="coll" id="rosToggle">YOUR ROSTER ▸</button><div id="rosBody" class="hide"></div></div>
   <div class="panel collapse"><button class="coll" id="logToggle">PLAY LOG ▸</button><div id="logLast" class="mute" style="font-size:12px;margin-top:6px"></div><div id="logBody" class="hide"><pre id="log"></pre></div></div>
 </section>
 
@@ -256,7 +262,7 @@ label.sl{display:block;margin-bottom:8px}
 
 <!-- SETTINGS -->
 <section id="scr-settings" class="screen hide">
-  <div class="panel"><span class="lbl">JERSEY COLOUR</span><div class="swatches" id="swSet"></div></div>
+  <div class="panel"><span class="lbl">TEAM NAME</span><input class="tname" id="tnSet" maxlength="12" placeholder="Your team name" autocomplete="off"><span class="lbl" style="margin-top:12px">JERSEY COLOUR</span><div class="swatches" id="swSet"></div></div>
   <div class="panel"><span class="lbl">GAME</span>
     <label class="sl">Quarter length<select id="qlen"><option value="2">2 min (quick)</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="8">8 min</option></select></label>
     <label class="sl">Default game speed<select id="setSpeed"><option value="slow">Slow-mo</option><option value="normal">Normal</option><option value="fast">Fast</option></select></label>
@@ -1611,6 +1617,25 @@ function buildSpecialTimeline(L){
   return {actors:A,rb:ball,tEnd,rbEnd:{x:0,y:0}};
 }
 
+// carrier meets defenders: shove him off line and slow him slightly instead of passing through
+function applyContact(A,carrier,tEnd){
+  const orig={keys:carrier.keys.map(k=>Object.assign({},k))},defs=A.filter(a=>a.type==='def');
+  const lastKey=orig.keys[orig.keys.length-1],dense=[];
+  let lag=0,push=0;
+  for(let t=0;t<tEnd-0.001;t+=0.05){
+    const fade=Math.max(0,Math.min(1,(tEnd-0.1-t)/0.45));
+    const p=at(orig,Math.max(0,t-lag*fade));
+    let near=null,nd=9;
+    if(t>T_CON)defs.forEach(d=>{const q=at(d,t),dd=Math.hypot(q.x-p.x,q.y-p.y);if(dd<nd){nd=dd;near=q}});
+    if(near&&nd<0.85&&t<tEnd-0.3){lag=Math.min(0.3,lag+0.07);push+=(p.x>=near.x?1:-1)*0.14;push=Math.max(-0.6,Math.min(0.6,push))}
+    else{lag=Math.max(0,lag-0.03);push*=0.85}
+    dense.push({t,x:p.x+push*fade,y:p.y,pose:p.pose});
+  }
+  const end=orig.keys[orig.keys.length-2];
+  dense.push({t:end.t,x:end.x,y:end.y,pose:end.pose});
+  dense.push(lastKey);
+  carrier.keys=dense;
+}
 function buildRunTimeline(L){
   const A=[];
   const mk=(type,pal,label,keys,role)=>{const a={type,pal,label,keys,role};A.push(a);return a};
@@ -1715,6 +1740,8 @@ function buildRunTimeline(L){
       mk('def',DPAL[type],type,keys,'sec');
     }
   });
+  fixKeys(A);
+  applyContact(A,carrier,cKeys[cKeys.length-2].t);
   fixKeys(A);
   return {actors:A,rb:carrier,tEnd:cKeys[cKeys.length-2].t,rbEnd};
 }
@@ -1979,7 +2006,7 @@ function draw(){
   // end zones: the one you attack (opponent colours) and your own
   const own=100-goal,oc=oppColor(),on=S.opp&&S.opp.team?S.opp.team.short:'ENDZONE';
   paintZone(Y(goal+10),Y(goal),oc,on,true);
-  paintZone(Y(-own),Y(-own-10),SET.color,'YOU',false);
+  paintZone(Y(-own),Y(-own-10),SET.color,myName().slice(0,9),false);
   // goal posts at the back of both end zones, always visible
   const post=(wy,dir)=>{
     const gy=Math.round(Y(wy));if(gy<-40||gy>H+40)return;
@@ -2038,6 +2065,15 @@ function draw(){
         ctx.lineTo(ex-8*Math.cos(-ang)-4*Math.sin(-ang),ey-8*Math.sin(-ang)+4*Math.cos(-ang));ctx.fill();
       });
     }
+  }
+
+  // defense mode: faint line showing where the chosen blitzer will go
+  if(t<T_SNAP&&S.mode==='def'&&L.blitz){
+    const p0=preDef(L,'LB',L.blitz.lb),gx=GAPS[L.blitz.gap].x;
+    const x1=X(p0[0]),y1=Y(p0[1])-14,x2=X(gx),y2=Y(0.2)-6;
+    ctx.strokeStyle='rgba(255,90,70,.8)';ctx.lineWidth=3;ctx.setLineDash([4,5]);
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(x1,y2+30,x2,y2);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,90,70,.7)';ctx.beginPath();ctx.moveTo(x2,y2+7);ctx.lineTo(x2-7,y2-6);ctx.lineTo(x2+7,y2-6);ctx.fill();
   }
 
   // actors, upfield first
@@ -2135,8 +2171,9 @@ const KEY='gr_run1';
 function save(){try{localStorage.setItem(KEY,JSON.stringify(RUN))}catch(e){}}
 function loadRun(){try{const j=localStorage.getItem(KEY);if(!j)return null;const r=JSON.parse(j);if(!r.phase)r.phase='build';if(!r.draft){r.draft=genDraft(r.seed);r.picks={oc:0,dc:0,relic:0}}if(r.phase==='season'&&!r.ev){r.ev=genEvent(r);r.step='event'}return r}catch(e){return null}}
 const SKEY='gr_set1';
-let SET={qlen:4,speed:'normal',haptics:true,sound:true,color:'#2f6bff'};
+let SET={qlen:4,speed:'normal',haptics:true,sound:true,color:'#2f6bff',team:''};
 try{const j=localStorage.getItem(SKEY);if(j)SET=Object.assign(SET,JSON.parse(j))}catch(e){}
+function myName(){const n=(SET.team||'').trim().toUpperCase();return n||'YOU'}
 function saveSet(){try{localStorage.setItem(SKEY,JSON.stringify(SET))}catch(e){}}
 let AC=null;
 function beep(f,d,type,vol,delay){
@@ -2174,7 +2211,7 @@ function refreshMenu(){
   const fn=['Missed playoffs','Lost in playoffs','Lost the final','Won the title'];
   $('metaInfo').innerHTML='Runs played '+META.runs+' · titles '+META.titles+(META.best>=0?' · best: '+fn[META.best]:'')+(META.bonusFP?'<br>Bonus FP waiting for your next run: <b class="acc">+'+META.bonusFP+'</b>':'');
 }
-$('btnNew').onclick=()=>{buildTemplates();buildSwatches('swTpl');show('template')};
+$('btnNew').onclick=()=>{buildTemplates();buildSwatches('swTpl');bindName('tnTpl');show('template')};
 $('btnSettings').onclick=()=>{loadSettingsUI();show('settings')};
 $('btnCont').onclick=()=>{
   const r=loadRun();if(!r)return;RUN=r;
@@ -2188,6 +2225,7 @@ function tplTags(t){
   Object.entries(t.set).forEach(([slot,o])=>Object.entries(o).forEach(([a,v])=>out.push(slot+' '+ATTR_NAME[a]+' '+v)));
   return out;
 }
+function bindName(id){const el=$(id);if(!el)return;el.value=SET.team||'';el.oninput=()=>{SET.team=el.value.replace(/[<>&]/g,'').slice(0,12);saveSet();['tnTpl','tnSet'].forEach(o=>{if(o!==id&&$(o))$(o).value=SET.team})}}
 function buildSwatches(id){
   const el=$(id);if(!el)return;el.innerHTML='';
   SWATCHES.forEach(([n,c])=>{
@@ -2317,6 +2355,17 @@ function renderScout(){
   const team=TEAMS.find(t=>t.id===OPPID),buff=RUN.phase==='season'?(RUN.buff||0):0,p=scoutPieces(team,buff);
   $('oppHead').innerHTML=p.head;$('matchups').innerHTML=p.match;$('keyPlayers').innerHTML=p.key;$('tendencies').innerHTML=p.tend;
 }
+function fillGameRoster(){
+  const AB={acc:'ACC',pow:'POW',spd:'SPD',awr:'AWR',vis:'VIS',rte:'RTE',hnd:'HND',pbk:'PBK',rbk:'RBK',prs:'RSH',rst:'STP',blz:'BLZ',cov:'COV',bal:'BAL'};
+  let h='';
+  [['OFFENSE',['QB','RB','WRL','WRR','SLOT','TE','LT','LG','C','RG','RT']],['DEFENSE',['DE-L','DT-L','DT-R','DE-R','LB-L','LB-M','LB-R','CB-L','CB-R','S-L','S-R']]].forEach(([t,sl])=>{
+    h+='<span class="lbl" style="margin-top:8px">'+t+'</span>';
+    sl.forEach(k=>{const p=RUN.roster[k];if(!p)return;
+      h+='<div class="rrow"><span class="rn">#'+p.num+'</span><span class="rp">'+SLOT_LABEL[k]+'</span><span>'+p.name+'</span><span class="rv">'+ovr(p)+'</span></div><div class="rat">'+ATTR_KEYS[p.group].map(a=>AB[a]+' '+p.attrs[a]).join(' · ')+'</div>';
+    });
+  });
+  $('rosBody').innerHTML=h;
+}
 function fillGameScout(team,buff){
   const p=scoutPieces(team,buff);
   $('gHead').innerHTML=p.head;$('gMatch').innerHTML='<span class="lbl" style="margin-top:8px">MATCHUPS (green = your edge)</span>'+p.match;
@@ -2337,7 +2386,8 @@ function startGame(){
   S.G=newGame({qLen:SET.qlen,seed:(Math.random()*4294967296)>>>0});
   S.msg='KICKOFF: you receive at your own 25.\nOpponent: '+team.name+' ('+team.arche+').';
   S.kind='run';S.primary=null;S.gap=PLAYS[S.play].gaps.includes(S.gap)?S.gap:PLAYS[S.play].gaps[0];
-  fillGameScout(team,season?(RUN.buff||0):0);
+  fillGameScout(team,season?(RUN.buff||0):0);fillGameRoster();
+  $('rosBody').classList.add('hide');$('rosToggle').textContent='YOUR ROSTER ▸';
   $('scoutBody').classList.add('hide');$('logBody').classList.add('hide');$('scoutToggle').textContent='SCOUTING REPORT (tips) ▸';$('logToggle').textContent='PLAY LOG ▸';$('logLast').textContent='';
   show('game');newSeed();prepare();
 }
@@ -2364,19 +2414,19 @@ function clockText(G){return Math.floor(G.clock/60)+':'+String(Math.floor(G.cloc
 function updateHud(){
   const G=S.G,sh=S.opp?S.opp.team.short:'CPU';
   const qn=G.q===5?'OT':'Q'+G.q;
-  $('hud').innerHTML='<div class="hrow"><span class="hq">'+qn+' '+clockText(G)+'</span><span class="hs '+(G.poss==='you'?'poss':'')+'">YOU '+G.score.you+'</span><span class="hs '+(G.poss==='cpu'?'poss':'')+'">'+sh+' '+G.score.cpu+'</span></div>'+
-    '<div class="hrow2">'+(G.over?'FINAL':G.pending?'POINT AFTER · '+(G.patSide==='you'?'YOU':sh)+': kick (+1) or go for two (+2)':ORD[G.down]+' &amp; '+(G.toGo>=100-G.ballOn?'Goal':G.toGo)+' · '+(G.poss==='you'?'YOU':sh)+' ball at '+spotText(G.ballOn))+'</div>';
+  $('hud').innerHTML='<div class="hrow"><span class="hq">'+qn+' '+clockText(G)+'</span><span class="hs '+(G.poss==='you'?'poss':'')+'">'+myName()+' '+G.score.you+'</span><span class="hs '+(G.poss==='cpu'?'poss':'')+'">'+sh+' '+G.score.cpu+'</span></div>'+
+    '<div class="hrow2">'+(G.over?'FINAL':G.pending?'POINT AFTER · '+(G.patSide==='you'?myName():sh)+': kick (+1) or go for two (+2)':ORD[G.down]+' &amp; '+(G.toGo>=100-G.ballOn?'Goal':G.toGo)+' · '+(G.poss==='you'?myName():sh)+' ball at '+spotText(G.ballOn))+'</div>';
 }
 function boxScore(G){
   const sh=S.opp.team.short;
   const f=(s,l)=>{const t=G.stats[s];return l.padEnd(10)+' plays '+t.plays+' · rush '+t.rush+'/'+t.rushYds+' · pass '+t.pass+'/'+t.passYds+' · TD '+t.td+' · FG '+t.fgm+'/'+t.fga+' · punts '+t.punts+' · TO '+t.to+' · sacks '+t.sacks};
-  return f('you','YOU')+'\n'+f('cpu',sh);
+  return f('you',myName())+'\n'+f('cpu',sh);
 }
 function situation(){
   const G=S.G,sh=S.opp.team.short;
-  if(G.over)return 'FINAL: YOU '+G.score.you+' - '+G.score.cpu+' '+sh;
-  if(G.pending)return 'POINT AFTER for '+(G.patSide==='you'?'YOU':sh)+' · '+(G.q===5?'OT':'Q'+G.q)+' '+clockText(G);
-  return ORD[G.down]+' & '+(G.toGo>=100-G.ballOn?'Goal':G.toGo)+' · '+(G.poss==='you'?'YOU':sh)+' ball at '+spotText(G.ballOn)+' · '+(G.q===5?'OT':'Q'+G.q)+' '+clockText(G);
+  if(G.over)return 'FINAL: '+myName()+' '+G.score.you+' - '+G.score.cpu+' '+sh;
+  if(G.pending)return 'POINT AFTER for '+(G.patSide==='you'?myName():sh)+' · '+(G.q===5?'OT':'Q'+G.q)+' '+clockText(G);
+  return ORD[G.down]+' & '+(G.toGo>=100-G.ballOn?'Goal':G.toGo)+' · '+(G.poss==='you'?myName():sh)+' ball at '+spotText(G.ballOn)+' · '+(G.q===5?'OT':'Q'+G.q)+' '+clockText(G);
 }
 function setLogIntro(){
   const t=(S.msg?S.msg+'\n\n':'')+'NEXT: '+situation()+'\n'+(S.G.pending?(S.mode==='off'?'Kick the extra point (+1), or run or pass for two (+2) from the 2-yard line.':'They are going for the point after. Set your defense, then SNAP.'):(S.mode==='off'?'You have the ball. Pick a call, then SNAP.':'They have the ball. Pick your front, blitz and coverage, then SNAP.'));
@@ -2455,6 +2505,7 @@ $('snap').onclick=()=>{
   }
   S.playing=true;S.smooth=true;$('snap').disabled=true;$('skip').disabled=false;fx('snap');
 };
+$('rosToggle').onclick=()=>{const h=$('rosBody').classList.toggle('hide');$('rosToggle').textContent='YOUR ROSTER '+(h?'▸':'▾')};
 $('logToggle').onclick=()=>{const h=$('logBody').classList.toggle('hide');$('logToggle').textContent='PLAY LOG '+(h?'▸':'▾')};
 $('scoutToggle').onclick=()=>{const h=$('scoutBody').classList.toggle('hide');$('scoutToggle').textContent='SCOUTING REPORT (tips) '+(h?'▸':'▾')};
 $('skip').onclick=()=>{if(S.playing)S.t=S.tl.tEnd+1.8};
@@ -2520,13 +2571,13 @@ function showResult(){
     }
     save();
   }
-  $('resHead').innerHTML='<div class="resbanner '+col+'">'+res+'</div><div class="score"><span>YOU</span><b>'+y+'</b><span>–</span><b>'+c+'</b><span>'+t.short+'</span></div><div class="mute" style="text-align:center">'+(season?S.resolvedStage+' · ':'')+t.name+'</div>';
+  $('resHead').innerHTML='<div class="resbanner '+col+'">'+res+'</div><div class="score"><span>'+myName()+'</span><b>'+y+'</b><span>–</span><b>'+c+'</b><span>'+t.short+'</span></div><div class="mute" style="text-align:center">'+(season?S.resolvedStage+' · ':'')+t.name+'</div>';
   let h='<table class="stats">';
   statRows(G).forEach(r=>{
     const better=r[5]===0?0:(r[1]===r[2]?0:((r[1]>r[2])===(r[5]>0)?1:-1));
     h+='<tr><td class="l">'+r[0]+'</td><td class="v '+(better>0?'best':'')+'">'+r[3]+'</td><td class="v '+(better<0?'best':'')+'">'+r[4]+'</td></tr>';
   });
-  $('resStats').innerHTML='<table class="stats"><tr><td></td><td class="v mute">YOU</td><td class="v mute">'+t.short+'</td></tr>'+h.replace('<table class="stats">','')+'</table>';
+  $('resStats').innerHTML='<table class="stats"><tr><td></td><td class="v mute">'+myName()+'</td><td class="v mute">'+t.short+'</td></tr>'+h.replace('<table class="stats">','')+'</table>';
   $('resRevPanel').classList.toggle('hide',!season);$('resNext').classList.toggle('hide',!season);
   ['resAgain','resOpp','resRoster'].forEach(id=>$(id).classList.toggle('hide',season));
   if(season){
@@ -2684,7 +2735,7 @@ $('lgSkip').onclick=()=>{renderRoster();show('roster')};
 
 // ---------- settings and balance harness ----------
 function loadSettingsUI(){
-  buildSwatches('swSet');$('qlen').value=String(SET.qlen);$('setSpeed').value=SET.speed;$('setHaptics').checked=SET.haptics;$('setSound').checked=SET.sound;$('clearMsg').textContent='';
+  buildSwatches('swSet');bindName('tnSet');$('qlen').value=String(SET.qlen);$('setSpeed').value=SET.speed;$('setHaptics').checked=SET.haptics;$('setSound').checked=SET.sound;$('clearMsg').textContent='';
 }
 $('qlen').onchange=()=>{SET.qlen=+$('qlen').value;saveSet()};
 $('setSpeed').onchange=()=>{SET.speed=$('setSpeed').value;saveSet()};
