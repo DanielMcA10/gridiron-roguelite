@@ -36,11 +36,11 @@ select{font:inherit;background:#27384d;color:var(--ink);border:2px solid #3a5272
 pre{margin:0;white-space:pre-wrap;font-size:12px;color:#cfe3f7}
 .hide{display:none}
 .mute{color:var(--mute)}.acc{color:var(--acc)}.ok{color:var(--ok)}.bad{color:var(--bad)}
-.hud{background:#000;border:2px solid #3a5272;border-radius:6px;padding:8px 10px;margin-bottom:8px}
-.hrow{display:flex;justify-content:space-between;align-items:center;font:11px 'Press Start 2P',ui-monospace,monospace;color:#cfe3f7}
-.hq{color:var(--acc)}.hs{padding:3px 6px;border-radius:3px}
+.hud{background:#000;border:2px solid #3a5272;border-radius:6px;padding:6px 8px;margin-bottom:6px}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:4px;white-space:nowrap;font:9px 'Press Start 2P',ui-monospace,monospace;color:#cfe3f7}
+.hq{color:var(--acc)}.hs{padding:3px 5px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;max-width:46%}
 .hs.poss{background:#1e5a30;color:#fff;box-shadow:0 0 0 1px #4cd964 inset}
-.hrow2{margin-top:7px;font-size:13px;color:#e8eef5}
+.hrow2{margin-top:5px;font-size:12px;color:#e8eef5}
 .chk{display:flex;align-items:center;gap:8px;margin-top:10px}
 #pdesc{color:var(--mute);font-size:12px;margin-top:8px}
 /* template cards */
@@ -89,7 +89,18 @@ td.n{text-align:center}
 .tag.boost{background:#1f5aa8}.tag.unit{background:#7a3aa8}.tag.fa{background:#2b8a4a}
 .otitle{font-weight:700;display:inline;vertical-align:middle}
 .panel,.card,.ocard{overflow-wrap:break-word;word-break:normal}
-#shopBar,#evBar{position:sticky;top:0;z-index:20;box-shadow:0 6px 8px -4px #000}
+#shopBar,#evBar{position:sticky;top:0;z-index:20;background:var(--bg);padding:0 0 6px;margin-top:-4px}
+#shopBar .statbar,#evBar .statbar{margin-bottom:4px}
+#snapRow{margin:0 0 6px}#snapRow button{min-height:30px;font-size:13px;padding:2px 4px;flex:1}#snapRow #snap{flex:2.2}#snapRow .tog{flex:.9;font-size:10px}
+body.ingame #ttl{display:none}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.sg{display:flex;justify-content:space-between;align-items:center;gap:6px;background:#17202b;border:1px solid var(--line);border-left:4px solid #3a5272;border-radius:4px;padding:6px 8px;font-size:12px}
+.sg b{font-weight:700}.sg .wk{color:var(--mute);font-size:10px;min-width:16px}.sg .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg.w{border-left-color:#2f9d52}.sg.w .rs{color:var(--ok)}.sg.l{border-left-color:#b04040}.sg.l .rs{color:var(--bad)}
+.sg.next{border-color:var(--acc);border-left-color:var(--acc);background:#251f0b}.sg.next .rs{color:var(--acc)}
+.sg.dim{opacity:.55}
+.sdiv{margin:10px 0 2px;font-size:10px;color:var(--mute);letter-spacing:.08em}
+.staff{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin-top:8px;font-size:12px}.staff .k{color:var(--acc);font-weight:700}
 .fpbar{position:sticky;top:0;z-index:20;box-shadow:0 6px 8px -4px #000}
 #scr-scout .lbl,#scoutBody .lbl{color:#f5c518}
 #scr-scout th,#scoutBody th{color:#4aa3ff;font-weight:700}
@@ -151,7 +162,7 @@ label.sl{display:block;margin-bottom:8px}
 </head>
 <body>
 <div class="wrap">
-<h1>GRIDIRON ROGUELITE</h1>
+<h1 id="ttl">GRIDIRON ROGUELITE</h1>
 
 <!-- MENU -->
 <section id="scr-menu" class="screen">
@@ -235,7 +246,8 @@ label.sl{display:block;margin-bottom:8px}
 <section id="scr-game" class="screen hide">
   <div id="hud" class="hud"></div>
   <canvas id="cv" width="480" height="560"></canvas>
-  <div class="row" style="margin-top:8px"><button id="snap">SNAP</button><button id="skip">SKIP</button></div>
+  <div class="row" id="snapRow"><button id="snap">SNAP</button><button id="skip">SKIP</button><button id="slowB" class="tog">SLOW</button><button id="fastB" class="tog">FAST</button></div>
+  <input type="checkbox" id="slow" hidden><input type="checkbox" id="fast" hidden>
   <div class="panel compact">
     <div id="offPanel">
       <div class="gaps g4" id="kinds"></div>
@@ -253,10 +265,9 @@ label.sl{display:block;margin-bottom:8px}
     </div>
     <div id="defPanel" class="hide">
       <span class="lbl">FRONT</span><div class="gaps g3" id="calls"></div>
-      <span class="lbl">LB BLITZ GAP</span><div class="gaps g9" id="blitzes"></div>
       <span class="lbl">COVERAGE</span><div class="gaps g5" id="covs"></div>
+      <span class="lbl">LB BLITZ GAP</span><div class="gaps g9" id="blitzes"></div>
     </div>
-    <label class="chk" style="margin-top:8px"><input type="checkbox" id="slow"> slow-mo &nbsp; <input type="checkbox" id="fast"> fast</label>
   </div>
   <div class="panel collapse"><button class="coll" id="scoutToggle">SCOUTING REPORT (tips) ▸</button><div id="scoutBody" class="hide"><div id="gHead"></div><div id="gMatch"></div><div id="gKey" style="margin-top:8px"></div><div id="gTend" style="margin-top:8px"></div></div></div>
   <div class="panel collapse"><button class="coll" id="rosToggle">YOUR ROSTER ▸</button><div id="rosBody" class="hide"></div></div>
@@ -380,9 +391,17 @@ const PLAYS={
   power: {id:'power', name:'Power',       carrier:'RB',gaps:[0,1,4,5],     base:-0.3,slope:4.5,sd:4.8,dbl:false,lead:0.6,pursuit:0,  bkaway:0.01},
   sweep: {id:'sweep', name:'Sweep',       carrier:'RB',gaps:[6,7],         base:-3.0,slope:4.6,sd:6.0,dbl:false,lead:1.0,pursuit:0.8,bkaway:0.04},
   qbdive:{id:'qbdive',name:'QB Dive',     carrier:'QB',gaps:[1,2,3,4],     base:0.9, slope:3.6,sd:2.6,dbl:true, lead:0,  pursuit:0,  bkaway:-0.015},
-  read:  {id:'read',  name:'Read Option', carrier:'RB',gaps:[1,4],         base:0.0, slope:4.8,sd:4.4,dbl:true, lead:0,  pursuit:0,  bkaway:0}
+  read:  {id:'read',  name:'Read Option', carrier:'RB',gaps:[1,4],         base:0.0, slope:4.8,sd:4.4,dbl:true, lead:0,  pursuit:0,  bkaway:0},
+  // misdirection: the lead blocker pulls; better against fronts that penetrate or blitz
+  counter:{id:'counter',name:'Counter',carrier:'RB',gaps:[0,1,4,5],base:-0.7,slope:4.6,sd:5.0,dbl:false,lead:0.9,pursuit:0.2,bkaway:0.02,vsCall:{tight:0.9,even:0,pinch:-0.3},vsBlitz:0.6},
+  // delayed handoff that looks like a pass: punishes blitzes and all-out man coverage
+  draw:  {id:'draw',  name:'Draw',        carrier:'RB',gaps:[1,2,3,4],    base:0.0, slope:4.4,sd:4.6,dbl:true, lead:0,  pursuit:0,  bkaway:0.01,vsCall:{tight:0.6,even:-0.2,pinch:0.2},vsCov:{c0:1.2,man:0.4,c2:0,c3:0,c4:-0.2},vsBlitz:1.4},
+  // a pitch to the edge: big ceiling, low floor; corners in the flats (Cover 2) and edge blitzes hurt it
+  toss:  {id:'toss',  name:'Toss',        carrier:'RB',gaps:[6,7],         base:-4.1,slope:5.0,sd:7.0,dbl:false,lead:1.1,pursuit:0.9,bkaway:0.06,vsCov:{c2:-0.9,c3:0.2,c4:0.5,man:0.2,c0:0.8},vsBlitz:-1.0},
+  // steady inside run: the guard kicks out a penetrating tackle
+  trap:  {id:'trap',  name:'Trap',        carrier:'RB',gaps:[1,2,3,4],    base:0.2, slope:4.0,sd:3.4,dbl:false,lead:0.8,pursuit:0,  bkaway:0,   vsCall:{tight:1.0,even:0,pinch:-0.4},vsBlitz:-0.5}
 };
-const PLAY_LIST=['dive','power','sweep','qbdive','read'];
+const PLAY_LIST=['dive','power','sweep','qbdive','read','counter','draw','toss','trap'];
 const KEEP={base:-2.6,slope:4.4,sd:5.0,dbl:true,lead:0,pursuit:0.7,bkaway:0.03}; // QB keeps on a read
 
 // ---------- PASS CONCEPTS ----------
@@ -408,9 +427,29 @@ const PASSES={
   hail:{id:'hail',name:'Hail Mary',drop:5.0,launch:3.0,order:['SLOT','TE','WRL','WRR'],
     desc:'Launch it to the end zone and pray. Low odds, can end in a pick.',
     routes:{WRL:{type:'hail',pts:[[-5.5,20],[-3.5,'E']],t:5.4},WRR:{type:'hail',pts:[[5.5,20],[3.5,'E']],t:5.4},
-      SLOT:{type:'hail',pts:[[3.9,20],[1.2,'E']],t:5.4},TE:{type:'hail',pts:[[3.0,20],[-1.2,'E']],t:5.4}}}
+      SLOT:{type:'hail',pts:[[3.9,20],[1.2,'E']],t:5.4},TE:{type:'hail',pts:[[3.0,20],[-1.2,'E']],t:5.4}}},
+  smash:{id:'smash',name:'Smash',drop:2.6,order:['WRR','SLOT','RB','WRL'],
+    desc:'Corner route over a hitch. Beats Cover 2, where the corner squats on the short route.',
+    routes:{WRR:{type:'smashc',pts:[[5.5,8],[6.1,15]],t:2.4},SLOT:{type:'hitch',pts:[[3.9,5.5],[3.9,4.4]],t:1.6},
+      WRL:{type:'hitch',pts:[[-5.5,5.5],[-5.5,4.4]],t:1.6},RB:{type:'flat',pts:[[-2.2,-3],[-4,-1.2]],t:1.3}}},
+  curl:{id:'curl',name:'Curl Flat',drop:2.2,order:['SLOT','WRL','WRR','TE'],
+    desc:'Curls at ten yards with a flat underneath. Safe against zone, weak over the top.',
+    routes:{WRL:{type:'curl',pts:[[-5.5,10],[-4.7,8.4]],t:1.9},WRR:{type:'curl',pts:[[5.5,10],[4.6,8.5]],t:1.9},
+      SLOT:{type:'curl',pts:[[3.9,10],[2.9,8.4]],t:1.9},TE:{type:'flat',pts:[[4.6,2],[5.8,1.2]],t:1.2},RB:{type:'flat',pts:[[-2,-2.4],[-4.4,-0.6]],t:1.4}}},
+  seam:{id:'seam',name:'Seams',drop:3.2,order:['TE','SLOT','WRL','RB'],
+    desc:'TE and slot run the seams up the middle; wide receivers hitch. Splits a Cover 2.',
+    routes:{TE:{type:'seam',pts:[[1.4,8],[0.6,16]],t:2.7},SLOT:{type:'seam',pts:[[3.0,8],[2.4,17]],t:2.8},
+      WRL:{type:'hitch',pts:[[-5.5,5.5],[-5.5,4.4]],t:1.6},WRR:{type:'hitch',pts:[[5.5,5.5],[5.5,4.4]],t:1.6},RB:{type:'flat',pts:[[1.8,-2.2],[3.6,-0.4]],t:1.3}}},
+  slantgo:{id:'slantgo',name:'Slant-Go',drop:3.4,order:['WRR','SLOT','WRL','RB'],
+    desc:'Sell the slant, then run past the corner. Man coverage bites hard.',
+    routes:{WRR:{type:'slantgo',pts:[[4.4,4.5],[5.7,13],[5.5,20]],t:3.2},WRL:{type:'quick',pts:[[-5.5,3],[-3.6,6]],t:1.1},
+      SLOT:{type:'quick',pts:[[3.9,4.5],[3.9,3.5]],t:1.0},RB:{type:'flat',pts:[[-2.2,-3],[-4,-1.2]],t:1.3}}},
+  sprint:{id:'sprint',name:'Sprint Out',drop:2.4,mobile:0.45,rollX:2.6,order:['TE','SLOT','WRR','RB'],
+    desc:'QB rolls right. The pocket holds longer, but there is little to the left.',
+    routes:{TE:{type:'out',pts:[[3.0,5],[5.3,6.2]],t:1.6},SLOT:{type:'dig',pts:[[3.9,9],[1.2,11]],t:2.4},
+      WRR:{type:'corner',pts:[[5.5,8],[6.0,14]],t:2.4},WRL:{type:'cross',pts:[[-4.8,2.5],[0.4,3.6],[4,4.2]],t:2.2},RB:{type:'flat',pts:[[2,-2],[4.6,0.8]],t:1.4}}}
 };
-const PASS_LIST=['slants','mesh','flood','verts','hail'];
+const PASS_LIST=['slants','mesh','flood','verts','hail','smash','curl','seam','slantgo','sprint'];
 // receiver quality offsets, defender coverage offsets, route-vs-coverage bonuses
 const COV_OFF_UNUSED={'CB-L':2,'CB-R':-1,'S-L':0,'S-R':1,'LB-L':-8,'LB-M':-6,'LB-R':-9};
 const TYPE_BONUS={
@@ -421,7 +460,12 @@ const TYPE_BONUS={
   dig:   {man:2, c0:3, c2:3, c3:1, c4:-1},
   corner:{man:-1,c0:0, c2:-3,c3:-4,c4:-7},
   go:    {man:-3,c0:-2,c2:-4,c3:-7,c4:-8},
-  hail:  {man:-8,c0:-6,c2:-9,c3:-9,c4:-10}};
+  hail:  {man:-8,c0:-6,c2:-9,c3:-9,c4:-10},
+  hitch: {man:1, c0:2, c2:2, c3:4, c4:5},
+  curl:  {man:0, c0:1, c2:2, c3:3, c4:3},
+  seam:  {man:-3,c0:-1,c2:4, c3:-4,c4:-3},
+  smashc:{man:-1,c0:0, c2:5, c3:-2,c4:-4},
+  slantgo:{man:3,c0:5, c2:0, c3:-3,c4:-4}};
 const MAN_MAP={WRL:{type:'CB',i:0},WRR:{type:'CB',i:1},SLOT:{type:'S',i:1},TE:{type:'LB',i:2},RB:{type:'LB',i:1}};
 function zoneOwner(cov,x,y){
   if(cov==='c3'){ // three deep thirds, four underneath
@@ -461,10 +505,10 @@ function teamFromRosters(offR,defR,offMods,defMods){
   const defs={};
   LB_ID.forEach(k=>{defs[k]={cov:d(k).cov-8,bal:R0-5}}); // linebackers cover worse than DBs at equal rating
   CB_ID.concat(S_ID).forEach(k=>{defs[k]={cov:d(k).cov,bal:d(k).bal}});
-  const lbs=LB_ID.map(k=>({blz:d(k).blz,rst:d(k).rst}));
+  const lbs=LB_ID.map(k=>({blz:d(k).blz,rst:d(k).rst,pur:(d(k).blz+d(k).rst+d(k).cov)/3}));
   return {
     ol:OL_ID.map(k=>({block:a(k).rbk,pblock:a(k).pbk})),
-    dl:DL_TAG.map(k=>({rush:d(k).prs,rst:d(k).rst})),
+    dl:DL_TAG.map(k=>({rush:d(k).prs,rst:d(k).rst,pur:(d(k).prs+d(k).rst)/2})),
     rb:{power:rbA.pow,speed:rbA.spd,vision:rbA.vis},
     qb:{power:qbA.pow,speed:qbA.spd,vision:qbA.awr,acc:qbA.acc,awr:qbA.awr},
     rec,defs,lbs,lbRst:avgOf(lbs.map(x=>x.rst)),
@@ -607,6 +651,9 @@ function resolveRun(P){
   mean+=(C.power-R0)/20-cut-(cfg.pursuit||0)-(P.team.lbRst-R0)/30;
   mean+=mv(OM,'runMean')+mv(DM,'runMean')+(carrier==='QB'?mv(OM,'qbRun'):0);
   if(P.blitz!=null&&clear>0.9)mean+=2.4;
+  if(cfg.vsCall)mean+=cfg.vsCall[call.id]||0;
+  if(cfg.vsCov)mean+=cfg.vsCov[P.coverage||'c4']||0;
+  if(P.blitz!=null&&cfg.vsBlitz)mean+=cfg.vsBlitz;
   const hx=P.hx||0;
   mean-=0.9*shortFrac(hx,xg)*clamp(Math.abs(xg)/3,0,1); // less room toward the sideline
   let yards=mean+n3()*cfg.sd;
@@ -616,6 +663,12 @@ function resolveRun(P){
     if(rng()<pb){yards+=6-Math.log(1-rng())*8;breakaway=true}
   }
   yards=clamp(Math.round(yards),-5,goal);
+  // a beaten or unblocked defender with good pursuit speed can run the carrier down from behind
+  let chaseCatch=null;
+  if(yards>=8&&yards<goal){
+    const ch=eng.filter(e=>!e.read&&(e.res==='beaten'||e.res==='free')).map(e=>({e,pur:e.blitz?P.team.lbs[lbIdx].pur:DL[e.dl].pur})).sort((a,b)=>b.pur-a.pur)[0];
+    if(ch&&rng()<clamp((ch.pur-RB.speed)/100+0.06,0,0.25)){yards=Math.max(5,yards-Math.round(2+rng()*4));chaseCatch=ch.e}
+  }
   const td=yards>=goal;
   const endX=clamp(xg+(rng()-0.5)*(gi>=6?1.6:2.4),-4.8,4.8);
 
@@ -634,6 +687,7 @@ function resolveRun(P){
       cands.push({d:Math.hypot(al.CB[i][0]-endX,al.CB[i][1]-yards),t:{type:'CB',i}});
     }
     tackler=cands.reduce((a,b)=>b.d<a.d?b:a).t;
+    if(chaseCatch)tackler=chaseCatch.blitz?{type:'LB',i:lbIdx}:{type:'DL',dl:chaseCatch.dl};
   }
 
   return {
@@ -646,6 +700,7 @@ function resolveRun(P){
     gap:{i:gi,id:GAPS[gi].id,x:xg},
     bounced,eng,
     blitz:P.blitz!=null?{gap:P.blitz,id:GAPS[P.blitz].id,picked:blitzPick,lb:lbIdx}:null,
+    pur:{dl:DL.map(x=>x.pur),lb:P.team.lbs.map(x=>x.pur),s:S_ID.map(k=>P.team.defs[k].cov),cb:CB_ID.map(k=>P.team.defs[k].cov)},
     clear:c,lane:c<0.5?'plugged':c<1.1?'tight':'open',
     yards,td,breakaway,endX,tackler,penetrated
   };
@@ -666,7 +721,7 @@ function resolvePass(P){
   const OL=P.team.ol,DL=P.team.dl,QB=P.team.qb,REC=P.team.rec,DEFS=P.team.defs,OM=P.team.modsOff,DM=P.team.modsDef;
   const n3=()=>rng()+rng()+rng()-1.5;
   const E=Math.min(goal+2,48);
-  const qbPos=[0,-1.5-con.drop];
+  const qbPos=[con.rollX||0,-1.5-con.drop];
 
   // 1) Pass protection vs rush
   const cand=[];
@@ -728,7 +783,7 @@ function resolvePass(P){
   if(cov==='c0')arrivals.forEach(a=>{a.t-=0.25}); // the extra rusher gets home faster
   arrivals.sort((a,b)=>a.t-b.t);
   const tPress0=arrivals.length?arrivals[0].t-0.2*(arrivals.length-1):99;
-  const tPress=tPress0<90?tPress0+mv(OM,'pocket')+mv(DM,'pocket'):tPress0;
+  const tPress=tPress0<90?tPress0+mv(OM,'pocket')+mv(DM,'pocket')+(con.mobile||0):tPress0;
 
   // 2) Routes vs coverage -> separation
   const routes=[];
@@ -738,7 +793,7 @@ function resolvePass(P){
     const catchPt=pts[pts.length-1];
     const def=isManCov(cov)?MAN_MAP[label]:zoneOwner(cov,catchPt[0],catchPt[1]);
     const dId=defId(def);
-    const deepT=spec.type==='go'||spec.type==='corner'||spec.type==='hail',quickT=spec.type==='quick'||spec.type==='flat'||spec.type==='cross';
+    const deepT=['go','corner','hail','seam','smashc','slantgo'].includes(spec.type),quickT=['quick','flat','cross','hitch','curl'].includes(spec.type);
     let sep=REC[label].rte-DEFS[dId].cov+REC_EDGE+TYPE_BONUS[spec.type][cov]+n3()*22+mv(OM,'passSep')+mv(DM,'passSep')+(deepT?mv(OM,'deepSep')+mv(DM,'deepSep'):0)+(quickT?mv(OM,'quickSep'):0)+(isManCov(cov)?mv(DM,'manSep'):mv(DM,'zoneSep'));
     {const hxp=P.hx||0,w=clamp(Math.abs(catchPt[0])/4.5,0,1);sep-=6*shortFrac(hxp,catchPt[0])*w;if(Math.sign(catchPt[0])===-Math.sign(hxp))sep+=1.5*Math.abs(hxp)/HASH*w} // boundary squeezes routes, field side has room
     if(def.type==='LB'&&lbIdx===def.i)sep+=10;           // blitzer left his man/zone
@@ -1285,7 +1340,7 @@ function computeMods(R){
 // ---------- events ----------
 const evGroupAttrs=(R,slots,n)=>slots.forEach(s=>Object.keys(R.roster[s].attrs).forEach(a=>{R.roster[s].attrs[a]=clamp(R.roster[s].attrs[a]+n,35,MAX_ATTR)}));
 const SKILL_SLOTS=['QB','RB','WRL','WRR','SLOT','TE'],LINE_SLOTS=['LT','LG','C','RG','RT','DE-L','DT-L','DT-R','DE-R'],SEC_SLOTS=['LB-L','LB-M','LB-R','CB-L','CB-R','S-L','S-R'];
-const EVENT_IDS=['sponsor','practice','raise','rival','tip','charity','equip','mystery'];
+const EVENT_IDS=['sponsor','practice','raise','rival','tip','charity','equip','mystery','physio','film','media','weather','gamble','rookie','spy','merch','veteran','grant'];
 function genEventId(R,idx){
   const rng=mulberry32((R.seed^Math.imul(idx+3,40503))>>>0);
   let id;do{id=EVENT_IDS[Math.floor(rng()*EVENT_IDS.length)]}while(id===R.lastEv&&idx>0);
@@ -1328,11 +1383,51 @@ const EVENTS={
       if(u<0.65){R.cash+=200;return 'Inside: 200 cash!'}
       if(u<0.80){R.cash+=50;R.hype=clamp(R.hype+20,0,100);return 'Inside: signed jerseys. +50 cash and +20 hype.'}
       return 'The box is empty. Better luck next time.';}},
-    {label:'Walk away',desc:'Nothing happens',fx:R=>'You walk on.'}]})
+    {label:'Walk away',desc:'Nothing happens',fx:R=>'You walk on.'}]}),
+  physio:R=>{
+    const s=R.ev.star||starSlot(R),p=R.roster[s];
+    return {title:'Injury scare',text:'#'+p.num+' '+p.name+' ('+SLOT_LABEL[s]+') pulled up in practice. The physio says a week of treatment gets him right.',choices:[
+      {label:'Full treatment',desc:'-80 cash, he recovers and gets +1 to all attributes',cost:80,fx:R=>{evGroupAttrs(R,[s],1);return p.name+' is back and sharper than ever (+1 everywhere).'}},
+      {label:'Play through it',desc:'-2 to all his attributes',fx:R=>{evGroupAttrs(R,[s],-2);return p.name+' plays hurt (-2 everywhere).'}}]};
+  },
+  film:R=>({title:'Film study',text:'The staff has a night to break down tape. Pick what to study.',choices:[
+    {label:'Quarterback reads',desc:'+3 QB Awareness and Accuracy',fx:R=>{const a=R.roster.QB.attrs;a.awr=clamp(a.awr+3,35,MAX_ATTR);a.acc=clamp(a.acc+3,35,MAX_ATTR);return 'Your QB sees the field better (+3 Awareness and Accuracy).'}},
+    {label:'Coverage schemes',desc:'+3 Coverage for all four corners and safeties',fx:R=>{['CB-L','CB-R','S-L','S-R'].forEach(s=>{const a=R.roster[s].attrs;a.cov=clamp(a.cov+3,35,MAX_ATTR)});return 'The secondary knows the routes now (+3 Coverage).'}},
+    {label:'Run fits',desc:'+3 Run stop for DL and LBs',fx:R=>{['DE-L','DT-L','DT-R','DE-R','LB-L','LB-M','LB-R'].forEach(s=>{const a=R.roster[s].attrs;a.rst=clamp(a.rst+3,35,MAX_ATTR)});return 'Your front seven fills gaps faster (+3 Run stop).'}}]}),
+  media:R=>({title:'Media day',text:'Reporters want a quote before the next game.',choices:[
+    {label:'Bold prediction',desc:'+15 hype, next opponent +2 on every attribute',fx:R=>{R.hype=clamp(R.hype+15,0,100);R.buff=(R.buff||0)+2;return 'Fans love it. Hype +15, but the other side read it too.'}},
+    {label:'Stay humble',desc:'+6 hype',fx:R=>{R.hype=clamp(R.hype+6,0,100);return 'Hype +6.'}}]}),
+  weather:R=>({title:'Big game weather',text:'Clear skies are forecast for the next home game. A bigger crowd is likely if you add seating.',choices:[
+    {label:'Add temporary seating',desc:'-80 cash, next game pays x1.5 at the gate',cost:80,fx:R=>{R.revMult=Math.max(R.revMult||1,1.5);return 'Extra seating is up. Your next gate pays x1.5.'}},
+    {label:'Keep it as is',desc:'Nothing happens',fx:R=>'You stay with the usual stands.'}]}),
+  gamble:R=>({title:'Double or nothing',text:'A local bookmaker offers you a coin-flip bet on your next game.',choices:[
+    {label:'Bet 100',desc:'-100 cash. 50%: win 250 back. Otherwise lose it',cost:100,fx:R=>{
+      const rng=mulberry32((R.seed^Math.imul(R.results.length+17,12289))>>>0);
+      if(rng()<0.5){R.cash+=250;return 'You win! +250 cash.'}
+      return 'You lose the bet.';}},
+    {label:'Walk away',desc:'Nothing happens',fx:R=>'You keep your money.'}]}),
+  rookie:R=>{
+    const slots=Object.keys(R.roster),w=slots.reduce((b,k)=>ovr(R.roster[k])<ovr(R.roster[b])?k:b,slots[0]),p=R.roster[w];
+    return {title:'Rookie camp',text:'A hungry rookie is available. Your weakest starter is #'+p.num+' '+p.name+' ('+SLOT_LABEL[w]+', overall '+ovr(p)+').',choices:[
+      {label:'Mentor him',desc:'-80 cash, +3 to all of his attributes',cost:80,fx:R=>{evGroupAttrs(R,[w],3);return p.name+' improves (+3 everywhere).'}},
+      {label:'Free tryout',desc:'+2 to all of his attributes',fx:R=>{evGroupAttrs(R,[w],2);return p.name+' picks up a little (+2 everywhere).'}}]};
+  },
+  spy:R=>({title:'Playbook leak',text:'A fan has photos of your next opponent\'s practice notes. They are for sale.',choices:[
+    {label:'Buy the notes',desc:'-60 cash, next opponent -3 on every attribute',cost:60,fx:R=>{R.buff=(R.buff||0)-3;return 'You know their weak spots now. Next opponent -3 on every attribute.'}},
+    {label:'Turn him away',desc:'+5 hype for sportsmanship',fx:R=>{R.hype=clamp(R.hype+5,0,100);return 'Hype +5.'}}]}),
+  merch:R=>({title:'Merchandise deal',text:'A supplier will print your team on jerseys and hats. Fans buy more when they are excited.',choices:[
+    {label:'Sign the deal',desc:'Cash equal to double your hype now',fx:R=>{const g=Math.round(R.hype*2);R.cash+=g;return 'Merch sells: +'+g+' cash.'}},
+    {label:'Decline',desc:'+4 hype',fx:R=>{R.hype=clamp(R.hype+4,0,100);return 'Hype +4.'}}]}),
+  veteran:R=>({title:'Veteran assistant coach',text:'A retired coach offers to run extra sessions for the team.',choices:[
+    {label:'Hire him',desc:'-90 cash, +2 free attribute points to spend',cost:90,fx:R=>{R.tp=(R.tp||0)+2;return '+2 free attribute points. Spend them in Edit Roster.'}},
+    {label:'No thanks',desc:'Nothing happens',fx:R=>'You pass.'}]}),
+  grant:R=>({title:'Community grant',text:'The council offers a grant for youth clinics. You choose how to take it.',choices:[
+    {label:'Take the money',desc:'+120 cash',fx:R=>{R.cash+=120;return '+120 cash.'}},
+    {label:'Host the clinics',desc:'+12 hype and +1 free attribute point',fx:R=>{R.hype=clamp(R.hype+12,0,100);R.tp=(R.tp||0)+1;return 'Hype +12 and 1 free attribute point.'}}]})
 };
 function genEvent(R){
   const idx=R.results.length,id=genEventId(R,idx);
-  return {id,chosen:null,msg:null,star:id==='raise'?starSlot(R):null};
+  return {id,chosen:null,msg:null,star:(id==='raise'||id==='physio')?starSlot(R):null};
 }
 function eventView(R){return EVENTS[R.ev.id](R)}
 function chooseEvent(R,i){
@@ -1394,6 +1489,7 @@ const ACH=[
   {id:'playoffs',name:'Made It',desc:'Reach the playoffs.',scope:'run',test:g=>['playoffs','final','title'].includes(g.R.finish),rew:UK.play('read'),rtext:'Read Option run'},
   {id:'final',name:'Big Stage',desc:'Reach the final.',scope:'run',test:g=>['final','title'].includes(g.R.finish),rew:UK.tpl('iron'),rtext:'Iron Curtain team style'},
   {id:'title',name:'Champions',desc:'Win the title.',scope:'run',test:g=>g.R.finish==='title',rew:UK.perk('relic','hof'),rtext:'Relic: Hall of Famers'},
+  {id:'pocket',name:'Clean Pocket',desc:'Win a game without allowing a sack.',scope:'game',test:g=>g.won&&g.y.sacks===0,rew:UK.pass('sprint'),rtext:'Sprint Out pass concept'},
   {id:'perfect',name:'Clean Sheet',desc:'Win a game without a turnover.',scope:'game',test:g=>g.won&&g.y.to===0},
   {id:'kicker',name:"Kicker's Day",desc:'Make 3+ field goals in a game.',scope:'game',test:g=>g.y.fgm>=3},
   {id:'two',name:'Two-Point Hero',desc:'Convert a two-point try.',scope:'game',test:g=>g.gm.twoPt},
@@ -1401,6 +1497,13 @@ const ACH=[
   {id:'undef',name:'Perfect Season',desc:'Win all 8 regular-season games.',scope:'game',test:g=>g.rec.w>=8}
 ];
 const STYLE_XP=[0,12,30,55,90];
+// concepts that unlock as a team style levels up
+const STYLE_UNLOCK={
+  ground:{2:UK.play('trap'),4:UK.play('counter')},
+  air:{2:UK.pass('smash'),4:UK.pass('seam')},
+  bal:{2:UK.pass('curl'),3:UK.play('draw')},
+  iron:{2:UK.play('toss'),4:UK.pass('slantgo')}
+};
 const styleLevel=xp=>STYLE_XP.reduce((l,t,i)=>xp>=t?i+1:l,1);
 const STYLE_PERKS={
   air:[null,{off:{quickSep:1}},{off:{deepSep:2}},{off:{pocket:0.15}},{off:{passSep:2}}],
@@ -1421,8 +1524,10 @@ function styleMods(tpl){
   for(let i=1;i<lv&&i<arr.length;i++){const p=arr[i];if(!p)continue;['off','def','eco'].forEach(s=>{if(p[s])Object.keys(p[s]).forEach(k=>{out[s][k]=(out[s][k]||0)+p[s][k]})})}
   return out;
 }
+const CONCEPT_NAME=key=>{const [k,id]=key.split(':');return k==='play'?PLAYS[id].name+' run':PASSES[id].name+' pass concept'};
 const unlockLabel=key=>{
   const a=ACH.find(x=>x.rew===key);if(a)return a.rtext;
+  for(const t in STYLE_UNLOCK)for(const l in STYLE_UNLOCK[t])if(STYLE_UNLOCK[t][l]===key)return CONCEPT_NAME(key);
   const m=MILESTONES.find(x=>x.reward===key);return m?m.text:key;
 };
 // ---- awarding ----
@@ -1457,9 +1562,17 @@ function awardRun(R,list){
   META.sxp[R.tpl]=(META.sxp[R.tpl]||0)+xp;
   const after=styleLevel(META.sxp[R.tpl]);
   R.styleGain={xp,before,after};
+  for(let l=before+1;l<=after;l++){const k=(STYLE_UNLOCK[R.tpl]||{})[l];if(k&&!META.unl[k]){META.unl[k]=1;list.push({ach:CONCEPT_NAME(k),text:'Unlocked at '+((TEMPLATES.find(t=>t.id===R.tpl)||{}).name||R.tpl)+' level '+l})}}
   if(after>before)list.push({ach:(TEMPLATES.find(t=>t.id===R.tpl)||{name:R.tpl}).name+' level '+after,text:STYLE_PERK_TEXT[R.tpl][after-1]||'Style level up'});
   checkAch('run',{R,rec:recordOf(R),y:{},c:{},gm:{}},list);
 }
+
+// style-level unlocks for profiles that already reached those levels
+function grantStyleUnlocks(){
+  if(!metaOn())return;
+  for(const t in STYLE_UNLOCK){const lv=styleLevel(META.sxp[t]||0);for(const l in STYLE_UNLOCK[t])if(+l<=lv)META.unl[STYLE_UNLOCK[t][l]]=1}
+}
+const styleNextText=(tpl,lv)=>{const u=(STYLE_UNLOCK[tpl]||{})[lv+1];return (STYLE_PERK_TEXT[tpl][lv]||'')+(u?' · unlocks '+CONCEPT_NAME(u):'')};
 
 
 // ============================================================
@@ -1756,7 +1869,7 @@ function buildSpecialTimeline(L){
     bk.push({t:T0+0.55,x:0,y:qbY+0.6},{t:T0+0.55+fl,x:0.6,y:ey});
     arc={t0:T0+0.55,t1:T0+0.55+fl,h:Math.min(9,2+L.gross*0.12)};tEnd=T0+0.55+fl+0.7;
   }else if(L.type==='fg'){
-    const fl=1.3,ey=L.goal+10,ex=L.good?0:((L.seed&1)?2.6:-2.6);
+    const fl=1.3,ey=L.goal+10,ex=(L.good?0:((L.seed&1)?2.6:-2.6))-(L.hx||0); // aim at the posts, not straight ahead from the hash
     qk.push({t:T0+0.5,x:0,y:qbY+0.6,pose:'run'},{t:T0+0.9,x:0,y:qbY+0.8,pose:'stand'});
     bk.push({t:T0+0.55,x:0,y:qbY+0.6},{t:T0+0.55+fl,x:ex,y:ey});
     arc={t0:T0+0.55,t1:T0+0.55+fl,h:Math.min(7,3+L.dist*0.06)};tEnd=T0+0.55+fl+0.7;
@@ -1771,8 +1884,18 @@ function buildSpecialTimeline(L){
   mk('off','off','TE',[{t:0,x:OFF_START.TE[0],y:OFF_START.TE[1],pose:'stance'}],'blk');
   ['WRL','WRR','SLOT'].forEach(l=>mk('off','wr',l,[{t:0,x:OFF_START[l][0],y:OFF_START[l][1],pose:'stance'}],'blk'));
   for(let j=0;j<5;j++)mk('off','off',OL_ID[j],[{t:0,x:OL_X[j],y:-0.7,pose:'stance'},{t:T0,x:OL_X[j],y:-0.7,pose:'stance'},{t:T0+0.4,x:OL_X[j],y:-0.45,pose:'stance'}],'ol');
-  CALLS[0].xs.forEach((x0,i)=>mk('def','def',DL_ID[i],[{t:0,x:x0,y:0.7,pose:'stance'},{t:T0,x:x0,y:0.7,pose:'stance'},{t:T0+0.4,x:x0,y:0.45,pose:'stance'}],'dl'));
-  [['LB',3],['S',2],['CB',2]].forEach(([type,n])=>{for(let i=0;i<n;i++){const p=ALIGN.c4[type][i];mk('def',DPAL[type],type,[{t:0,x:p[0],y:p[1],pose:'stand'}],'sec')}});
+  if(L.type==='punt'){
+    // punt block: everyone but one returner crashes toward the kicker
+    const rush=(x0,y0)=>[{t:0,x:x0,y:y0,pose:'stance'},{t:T0+0.25,x:x0,y:y0,pose:'stance'},{t:T0+0.9,x:x0*0.4,y:-3.2,pose:'run'},{t:T0+1.6,x:x0*0.35,y:-3.0,pose:'stance'}];
+    [-2.3,-0.8,0.8,2.3].forEach((x0,i)=>mk('def','def',DL_ID[i],rush(x0,0.7),'dl'));
+    [-3.9,0,3.9].forEach(x0=>mk('def',DPAL.LB,'LB',rush(x0,x0===0?1.6:0.9),'sec'));
+    [-5.2,5.2].forEach(x0=>mk('def',DPAL.CB,'CB',rush(x0,0.9),'sec'));
+    mk('def',DPAL.S,'S',rush(-1.8,2.6),'sec');
+    mk('def',DPAL.S,'S',[{t:0,x:0.6,y:Math.min(L.gross,L.goal+8),pose:'stand'}],'sec');
+  }else{
+    CALLS[0].xs.forEach((x0,i)=>mk('def','def',DL_ID[i],[{t:0,x:x0,y:0.7,pose:'stance'},{t:T0,x:x0,y:0.7,pose:'stance'},{t:T0+0.4,x:x0,y:0.45,pose:'stance'}],'dl'));
+    [['LB',3],['S',2],['CB',2]].forEach(([type,n])=>{for(let i=0;i<n;i++){const p=ALIGN.c4[type][i];mk('def',DPAL[type],type,[{t:0,x:p[0],y:p[1],pose:'stand'}],'sec')}});
+  }
   const ball=mk('ball','ball','',bk.map(k=>Object.assign({pose:'stand'},k)),'ball');ball.arc=arc;
   fixKeys(A);
   return {actors:A,rb:ball,tEnd,rbEnd:{x:0,y:0}};
@@ -1801,11 +1924,12 @@ function buildRunTimeline(L){
   const A=[];
   const mk=(type,pal,label,keys,role)=>{const a={type,pal,label,keys,role};A.push(a);return a};
   const xg=L.gap.x,endY=L.td?L.goal+1:L.yards,endX=L.endX,isQB=L.carrier==='QB';
-  const sweepy=L.play.id==='sweep';
+  const sweepy=L.play.id==='sweep'||L.play.id==='toss',isDraw=L.play.id==='draw',isCounter=L.play.id==='counter';
 
   let pts;
   if(isQB){const sp=Math.max(1.5,Math.abs(xg)*0.9);pts=[{x:0,y:-1.5,s:0},{x:xg*0.6,y:-0.9,s:sp},{x:xg,y:-0.3,s:sp}]}
   else if(sweepy)pts=[{x:0,y:-4.5,s:0},{x:xg*0.45,y:-3.4,s:4.2},{x:xg*0.85,y:-1.4,s:4.8},{x:xg,y:-0.3,s:5.0}];
+  else if(isCounter)pts=[{x:0,y:-4.5,s:0},{x:-Math.sign(xg||1)*1.1,y:-3.9,s:3.0},{x:xg*0.7,y:-1.8,s:3.9},{x:xg,y:-0.3,s:3.9}];
   else pts=[{x:0,y:-4.5,s:0},{x:xg*0.55,y:-2.0,s:3.8},{x:xg,y:-0.3,s:3.8}];
   const startY=pts[0].y;
   if(endY>-0.3)pts.push({x:endX,y:endY,s:endY>10?8:6.2});
@@ -1818,7 +1942,7 @@ function buildRunTimeline(L){
       }
     }
   }
-  let t=T_SNAP+0.05;
+  let t=T_SNAP+(isDraw?0.6:0.05);
   const cKeys=[{t:0,x:pts[0].x,y:pts[0].y,pose:'stance'},{t,x:pts[0].x,y:pts[0].y,pose:'run'}];
   for(let k=1;k<pts.length;k++){
     const a=pts[k-1],b=pts[k];
@@ -1833,7 +1957,7 @@ function buildRunTimeline(L){
   const rbEnd={x:last.x,y:last.y};
 
   if(!isQB){
-    mk('off','off','QB',[{t:0,x:0,y:-1.5,pose:'stance'},{t:T_SNAP,x:0,y:-1.5,pose:'stand'}],'qb');
+    mk('off','off','QB',isDraw?[{t:0,x:0,y:-1.5,pose:'stance'},{t:T_SNAP,x:0,y:-1.5,pose:'stand'},{t:T_SNAP+0.5,x:0.4,y:-3.6,pose:'run'},{t:T_SNAP+0.7,x:0.4,y:-3.6,pose:'stand'}]:[{t:0,x:0,y:-1.5,pose:'stance'},{t:T_SNAP,x:0,y:-1.5,pose:'stand'}],'qb');
   }else{
     const dx=L.play.id==='read'?L.giveX:xg;
     mk('off','rb','RB',[{t:0,x:0,y:-4.5,pose:'stance'},{t:T_SNAP+0.05,x:0,y:-4.5,pose:'run'},
@@ -1868,17 +1992,30 @@ function buildRunTimeline(L){
     }
     mk('off','off',OL_ID[j],keys,'ol');
   }
+  // defenders pursue the carrier after the play develops: speed comes from their pursuit rating
+  const car=cKeys,pur=L.pur||{dl:[],lb:[],s:[],cb:[]};
+  const chaseKeys=(keys,p,tStart,tackle)=>{
+    let v=3.6+((p||60)-50)/25,k=keys[keys.length-1],x=k.x,y=k.y,t=Math.max(tStart,k.t);
+    if(t>k.t+0.001)keys.push({t,x,y,pose:k.pose});
+    const tStop=tackle?Math.max(tEnd,t+0.3):tEnd+0.35;
+    if(tackle)v=Math.max(v,Math.hypot(rbEnd.x+0.3-x,rbEnd.y+0.25-y)/Math.max(0.3,tStop-t)*1.05);
+    while(t<tStop-0.001){
+      const dt=Math.min(0.1,tStop-t);t+=dt;
+      const c=at({keys:car},t),dx=c.x-x,dy=c.y-y,d=Math.hypot(dx,dy);
+      let pose='run';
+      if(tackle&&t>=tStop-0.001){x=rbEnd.x+0.3;y=rbEnd.y+0.25;pose='stance'}
+      else if(d>0.55){const m=Math.min(d-0.5,v*dt);x+=dx/d*m;y+=dy/d*m}else pose='stance';
+      keys.push({t,x,y,pose});
+    }
+  };
   // DL
   L.call.xs.forEach((x0,i)=>{
     const e=L.eng.find(e=>e.dl===i&&!e.blitz);
     const chase=e.res==='beaten'||e.res==='crash';
     const keys=[{t:0,x:x0,y:0.7,pose:'stance'},{t:T_SNAP,x:x0,y:0.7,pose:'stance'},{t:T_CON,x:e.cx,y:0.45,pose:'stance'},
       {t:T_RES,x:e.fx,y:e.depth,pose:chase?'run':'stance'}];
-    if(L.tackler&&L.tackler.type==='DL'&&L.tackler.dl===i){
-      keys.push({t:Math.max(tEnd,T_RES+0.3),x:rbEnd.x+0.3,y:rbEnd.y+0.25,pose:'stance'});
-    }else if(chase){
-      keys.push({t:Math.max(tEnd+0.2,T_RES+0.4),x:rbEnd.x+(i-1.5)*0.45,y:rbEnd.y-1.0,pose:'stand'});
-    }
+    const tk=L.tackler&&L.tackler.type==='DL'&&L.tackler.dl===i;
+    if(tk||chase)chaseKeys(keys,pur.dl[i],T_RES,tk);
     mk('def','def',DL_ID[i],keys,'dl');
   });
   // second level: 3 LB, 2 S, 2 CB
@@ -1887,16 +2024,15 @@ function buildRunTimeline(L){
     for(let i=0;i<n;i++){
       const p=preDef(L,type,i);
       const isTk=L.tackler&&L.tackler.type===type&&L.tackler.i===i;
+      const pr=type==='LB'?pur.lb[i]:type==='S'?pur.s[i]:pur.cb[i];
       let keys;
       if(type==='LB'&&bE&&bE.lb===i){
         const run=bE.res==='free'||bE.res==='beaten';
         keys=[{t:0,x:p[0],y:p[1],pose:'stance'},{t:T_SNAP,x:p[0],y:p[1],pose:'stance'},{t:T_CON,x:bE.cx,y:0.45,pose:'stance'},{t:T_RES,x:bE.fx,y:bE.depth,pose:run?'run':'stance'}];
-        if(isTk)keys.push({t:Math.max(tEnd,T_RES+0.3),x:rbEnd.x+0.3,y:rbEnd.y+0.25,pose:'stance'});
-        else if(run)keys.push({t:Math.max(tEnd+0.2,T_RES+0.4),x:rbEnd.x+0.7,y:rbEnd.y-1.2,pose:'stand'});
+        if(isTk||run)chaseKeys(keys,pr,T_RES,isTk);
       }else{
-        keys=[{t:0,x:p[0],y:p[1],pose:'stand'},{t:T_RES,x:p[0],y:p[1],pose:'stand'}];
-        if(isTk)keys.push({t:Math.max(tEnd,T_RES+0.7),x:rbEnd.x+0.25,y:rbEnd.y+0.55,pose:'stance'});
-        else keys.push({t:T_RES+0.6,x:p[0]*0.8+xg*0.2,y:p[1]-0.3,pose:'run'});
+        keys=[{t:0,x:p[0],y:p[1],pose:'stand'},{t:T_SNAP,x:p[0],y:p[1],pose:'stand'}];
+        chaseKeys(keys,pr,T_CON+(type==='LB'?0.15:0.35),isTk);
       }
       mk('def',DPAL[type],type,keys,'sec');
     }
@@ -2367,11 +2503,12 @@ function saveMeta(){try{localStorage.setItem(MKEY,JSON.stringify(META))}catch(e)
 loadMeta();
 const PAT_PASSES=['slants','mesh']; // short concepts that fit inside a two-yard field
 const SCREENS=['prog','menu','template','roster','scout','shop','event','picks','legacy','settings','game','result','over'];
-function show(name){SCREENS.forEach(n=>$('scr-'+n).classList.toggle('hide',n!==name));try{window.scrollTo(0,0)}catch(e){}}
+function show(name){document.body.classList.toggle('ingame',name==='game');SCREENS.forEach(n=>$('scr-'+n).classList.toggle('hide',n!==name));try{window.scrollTo(0,0)}catch(e){}}
 function newSeed(){S.seed=(Math.random()*4294967296)>>>0}
 
 // ---------- menu & template ----------
 function refreshMenu(){
+  grantStyleUnlocks();
   $('btnCont').classList.toggle('hide',!loadRun());
   $('btnProg').textContent='PROGRESS & ACHIEVEMENTS ('+Object.keys(META.ach).length+'/'+ACH.length+')';
   const fn=['Missed playoffs','Lost in playoffs','Lost the final','Won the title'];
@@ -2507,7 +2644,7 @@ function best(r,groups,fn){return slotsOf(r,groups).reduce((a,b)=>fn(b)>fn(a)?b:
 function kp(p,note){return '<div class="kp"><b>#'+p.num+'</b> '+p.name+' <span class="mute">'+SLOT_LABEL[p.slot]+'</span> · ovr '+ovr(p)+(note?' · '+note:'')+'</div>'}
 function scoutPieces(team,buff){
   const opp=genTeamRoster(team,buff),yu=units(RUN.roster),ou=units(opp);
-  const head='<div><b>'+team.name+'</b> <span class="mute">'+team.arche+' · overall '+(team.avg+buff)+'</span></div><div class="mute" style="font-size:12px">'+team.note+'</div>'+(buff?'<div class="bad" style="margin-top:4px;font-size:12px">Fired up: +'+buff+' on every attribute. This game pays double.</div>':'');
+  const head='<div><b>'+team.name+'</b> <span class="mute">'+team.arche+' · overall '+(team.avg+buff)+'</span></div><div class="mute" style="font-size:12px">'+team.note+'</div>'+(buff>0?'<div class="bad" style="margin-top:4px;font-size:12px">Fired up: +'+buff+' on every attribute.</div>':buff<0?'<div class="ok" style="margin-top:4px;font-size:12px">Caught off guard: '+buff+' on every attribute.</div>':'');
   const rows=[
     ['Pass block vs rush',yu.OLp,ou.DLp],['Run block vs stop',yu.OLr,ou.DLr],['Receivers vs DBs',yu.WR,ou.DBc],['RB vs LBs',yu.RBp,ou.LBr],
     ['Pass rush vs block',yu.DLp,ou.OLp],['Run stop vs block',yu.DLr,ou.OLr],['Coverage vs WRs',yu.DBc,ou.WR],['LBs vs RB',yu.LBr,ou.RBp]
@@ -2563,7 +2700,7 @@ function startGame(){
   S.opp={team,roster:genTeamRoster(team,season?(RUN.buff||0):0),tend:team.tend};
   S.T={you:RUN.roster,cpu:S.opp.roster};
   S.M={you:computeMods(RUN),cpu:null};
-  $('slow').checked=SET.speed==='slow';$('fast').checked=SET.speed==='fast';
+  $('slow').checked=SET.speed==='slow';$('fast').checked=SET.speed==='fast';syncSpeedBtns();
   S.G=newGame({qLen:SET.qlen,seed:(Math.random()*4294967296)>>>0});
   S.msg='KICKOFF: you receive at your own 25.\nOpponent: '+team.name+' ('+team.arche+').';
   S.kind='run';S.primary=null;S.gap=PLAYS[S.play].gaps.includes(S.gap)?S.gap:PLAYS[S.play].gaps[0];
@@ -2635,6 +2772,7 @@ function btn(parent,html,on,fn,style){
 function gapLabel(pid,gi){
   const id=GAPS[gi].id,left=id.endsWith('-L');
   if(pid==='sweep')return left?'SWEEP LEFT':'SWEEP RIGHT';
+  if(pid==='toss')return left?'TOSS LEFT':'TOSS RIGHT';
   if(pid==='read')return left?'READ LEFT':'READ RIGHT';
   return id;
 }
@@ -2690,6 +2828,9 @@ $('snap').onclick=()=>{
   S.playing=true;S.smooth=true;$('snap').disabled=true;$('skip').disabled=false;fx('snap');
 };
 $('rosToggle').onclick=()=>{const h=$('rosBody').classList.toggle('hide');$('rosToggle').textContent='YOUR ROSTER '+(h?'▸':'▾')};
+function syncSpeedBtns(){$('slowB').className='tog'+($('slow').checked?' on':'');$('fastB').className='tog'+($('fast').checked?' on':'')}
+$('slowB').onclick=()=>{$('slow').checked=!$('slow').checked;if($('slow').checked)$('fast').checked=false;syncSpeedBtns()};
+$('fastB').onclick=()=>{$('fast').checked=!$('fast').checked;if($('fast').checked)$('slow').checked=false;syncSpeedBtns()};
 $('logToggle').onclick=()=>{const h=$('logBody').classList.toggle('hide');$('logToggle').textContent='PLAY LOG '+(h?'▸':'▾')};
 $('scoutToggle').onclick=()=>{const h=$('scoutBody').classList.toggle('hide');$('scoutToggle').textContent='SCOUTING REPORT (tips) '+(h?'▸':'▾')};
 $('skip').onclick=()=>{if(S.playing)S.t=S.tl.tEnd+1.8};
@@ -2777,7 +2918,7 @@ function showResult(){
     const row=(l,v,sub)=>'<tr><td>'+l+(sub?'<br><span class="mute" style="font-size:11px">'+sub+'</span>':'')+'</td><td>'+v+'</td></tr>';
     $('resRev').innerHTML='<table class="rev">'+row('Base gate','+'+r.base,'100 × stadium '+r.sm+' × hype '+r.hm.toFixed(2))+
       (r.win?row('Win bonus','+'+r.win):'')+(r.margin?row('Winning margin','+'+r.margin,'1 per point, max 30'):'')+
-      (r.playoff?row('Playoff game','× 2'):'')+(r.evMult>1?row('Rival game','× '+r.evMult):'')+(r.relic?row('Relic bonus','+'+Math.round(r.relic*100)+'%'):'')+(r.winCash?row('War Chest win bonus','+'+r.winCash):'')+
+      (r.playoff?row('Playoff game','× 2'):'')+(r.evMult>1?row('Event bonus','× '+r.evMult):'')+(r.relic?row('Relic bonus','+'+Math.round(r.relic*100)+'%'):'')+(r.winCash?row('War Chest win bonus','+'+r.winCash):'')+
       '<tr class="tot"><td>Revenue</td><td>+'+r.total+'</td></tr></table>'+
       '<div style="margin-top:10px;display:flex;justify-content:space-between"><span class="mute">Cash</span><b class="acc">'+(RUN.cash-r.total-(r.winCash||0))+' → '+RUN.cash+'</b></div>'+
       '<div style="margin-top:4px;display:flex;justify-content:space-between"><span class="mute">Hype</span><b>'+(RUN.hype-S.lastRes.hype)+' → '+RUN.hype+' ('+(S.lastRes.hype>=0?'+':'')+S.lastRes.hype+')</b></div>'+
@@ -2799,7 +2940,7 @@ function renderProg(){
   let h='';
   TEMPLATES.forEach(t=>{
     const xp=META.sxp[t.id]||0,lv=styleLevel(xp),nx=STYLE_XP[lv],base=STYLE_XP[lv-1];
-    h+='<div class="arow2"><b>'+t.name+'</b> '+(tplOK(t.id)?'':'🔒 ')+'<span class="mute">level '+lv+(lv<5?' · '+xp+' / '+nx+' XP':' · MAX')+'</span><div class="bar2"><i style="width:'+(lv<5?Math.round((xp-base)/(nx-base)*100):100)+'%"></i></div><div class="mute" style="font-size:11px">'+(lv<5?'Next: '+STYLE_PERK_TEXT[t.id][lv]:'Mastery reached')+'</div></div>';
+    h+='<div class="arow2"><b>'+t.name+'</b> '+(tplOK(t.id)?'':'🔒 ')+'<span class="mute">level '+lv+(lv<5?' · '+xp+' / '+nx+' XP':' · MAX')+'</span><div class="bar2"><i style="width:'+(lv<5?Math.round((xp-base)/(nx-base)*100):100)+'%"></i></div><div class="mute" style="font-size:11px">'+(lv<5?'Next: '+styleNextText(t.id,lv):'Mastery reached')+'</div></div>';
   });
   $('progStyles').innerHTML=h;
   const n=Object.keys(META.ach).length;$('progAchLbl').textContent='ACHIEVEMENTS '+n+' / '+ACH.length;
@@ -2852,20 +2993,23 @@ function renderShop(){
     div.appendChild(b);fe.appendChild(div);
   });
   const reg=RUN.results.filter(r=>r.stage==='regular');
-  let ch='';
+  const cell=(wk,name,r,isNext,dim)=>'<div class="sg '+(r?(r.y>r.c?'w':'l'):isNext?'next':dim?'dim':'')+'"><span class="wk">'+wk+'</span><span class="nm">'+name+'</span><span class="rs"><b>'+(r?(r.y>r.c?'W ':'L ')+r.y+'-'+r.c:isNext?'NEXT':'')+'</b></span></div>';
+  let ch='<div class="sgrid">';
   for(let i=0;i<REG_GAMES;i++){
     const t=TEAMS.find(x=>x.id===RUN.schedule[i]),r=reg[i];
-    ch+='<span class="chip '+(r?(r.y>r.c?'w':'l'):(i===RUN.week&&RUN.stage==='regular'?'next':''))+'">'+t.short.slice(0,6)+(r?' '+r.y+'-'+r.c:'')+'</span>';
+    ch+=cell(i+1,t.name.replace(/^.* /,''),r,!r&&i===RUN.week&&RUN.stage==='regular',false);
   }
-  [['semi','SEMI'],['final','FINAL']].forEach(([st,lab])=>{
-    const r=RUN.results.find(x=>x.stage===st);
-    ch+='<span class="chip '+(r?(r.y>r.c?'w':'l'):(RUN.stage===st?'next':''))+'">'+lab+(r?' '+r.y+'-'+r.c:'')+'</span>';
+  ch+='</div><div class="sdiv">PLAYOFFS</div><div class="sgrid">';
+  [['semi','SF','anvils'],['final','F','kings']].forEach(([st,lab,tid])=>{
+    const r=RUN.results.find(x=>x.stage===st),t=TEAMS.find(x=>x.id===(r?r.opp:tid));
+    ch+=cell(lab,t.name.replace(/^.* /,''),r,RUN.stage===st&&!r,!r&&RUN.stage!==st);
   });
-  $('schedChips').innerHTML=ch;
+  ch+='</div>';
+  $('schedChips').className='';$('schedChips').innerHTML=ch;
   const opp=TEAMS.find(t=>t.id===currentOppId(RUN));
   $('shopNext').textContent='SCOUT '+opp.short+' ('+stageLabel(RUN)+')';
   $('shopRoster').textContent='EDIT ROSTER (cash '+RUN.cash+', free points '+RUN.tp+')';
-  $('staffLine').textContent='Staff: OC '+pickedPerk(RUN,'oc').name+' · DC '+pickedPerk(RUN,'dc').name+' · Relic '+pickedPerk(RUN,'relic').name;
+  $('staffLine').className='staff';$('staffLine').innerHTML='<span class="k">OC</span><span>'+pickedPerk(RUN,'oc').name+'</span><span class="k">DC</span><span>'+pickedPerk(RUN,'dc').name+'</span><span class="k">Relic</span><span>'+pickedPerk(RUN,'relic').name+'</span>';
   RUN.step='shop';
 }
 $('reroll').onclick=()=>{if(rerollShop(RUN)){save();renderShop()}};
