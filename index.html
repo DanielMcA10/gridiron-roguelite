@@ -174,7 +174,7 @@ label.sl{display:block;margin-bottom:8px}
 .stats td.best{color:var(--ok)}
 .rev td{border:none;padding:2px 4px}.rev td:last-child{text-align:right}.rev .tot td{border-top:1px solid var(--line);font-weight:700;color:var(--acc)}
 </style>
-</head>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b1a0f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"></head>
 <body>
 <div class="wrap">
 <button id="muteBtn" title="Sound on/off" aria-label="Sound on/off">🔊</button>
@@ -3536,6 +3536,6 @@ $('btnClearAll').onclick=()=>{
 $('setBack').onclick=()=>{refreshMenu();show('menu')};
 refreshMenu();show('menu');requestAnimationFrame(frame);
 </script>
-</body>
+<script>if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script></body>
 </html>
 
