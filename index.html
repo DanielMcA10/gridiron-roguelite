@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#0b1a0f">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Gridiron Roguelite</title>
@@ -26,8 +20,8 @@ canvas{width:100%;display:block;image-rendering:pixelated;border:3px solid #000;
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}
 .lbl{font:9px 'Press Start 2P',ui-monospace,monospace;color:var(--mute);margin-bottom:8px;display:block;line-height:1.5}
 .gaps{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g9{grid-template-columns:repeat(9,1fr)}
-.g5 button,.g9 button{font-size:10px;padding:4px 0}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g5{grid-template-columns:repeat(5,1fr)}.g6{grid-template-columns:repeat(6,1fr)}.g9{grid-template-columns:repeat(9,1fr)}
+.g5 button,.g6 button,.g9 button{font-size:10px;padding:4px 0}
 .gaps button{position:relative}
 .panel.compact{position:relative}
 .fsheet{position:absolute;left:0;right:0;top:0;background:#10151c;border:2px solid #378ADD;border-radius:8px;padding:10px;z-index:40;box-sizing:border-box}
@@ -51,7 +45,7 @@ pre{margin:0;white-space:pre-wrap;font-size:12px;color:#cfe3f7}
 .mute{color:var(--mute)}.acc{color:var(--acc)}.ok{color:var(--ok)}.bad{color:var(--bad)}
 .hud{background:#000;border:2px solid #3a5272;border-radius:6px;padding:6px 8px;margin-bottom:6px}
 .hrow{display:flex;justify-content:space-between;align-items:center;gap:4px;white-space:nowrap;font:9px 'Press Start 2P',ui-monospace,monospace;color:#cfe3f7}
-.hq{color:var(--acc)}.hs{padding:3px 5px;border-radius:3px;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.hq{color:var(--acc);flex:none}.hs{padding:3px 5px;border-radius:3px;display:flex;gap:5px;min-width:0;max-width:46%}.hs .hn{overflow:hidden;text-overflow:ellipsis;min-width:0}.hs .hsc{flex:none}
 .hs.poss{background:#1e5a30;color:#fff;box-shadow:0 0 0 1px #4cd964 inset}
 .hrow2{margin-top:5px;font-size:12px;color:#e8eef5}
 .chk{display:flex;align-items:center;gap:8px;margin-top:10px}
@@ -145,6 +139,14 @@ body.ingame #ttl{display:none}
 .swatches{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
 .sw{width:38px;height:38px;border-radius:50%;border:3px solid #3a5272;cursor:pointer;min-height:0;padding:0}
 .sw.on{border-color:#fff;box-shadow:0 0 0 3px var(--acc)}
+.mode{background:var(--panel);border:2px solid var(--line);border-left-width:6px;border-radius:8px;padding:12px;margin-bottom:10px}
+.mode h3{margin:0 0 4px;font:12px 'Press Start 2P',ui-monospace,monospace}
+.mode.m1{border-left-color:#4aa3ff}.mode.m2{border-left-color:#4cd964}.mode.m3{border-left-color:#ff5a4d}
+.mode p{margin:0 0 8px;font-size:12px}.mode .row{margin-top:6px}.minfo{font-size:11px;margin-top:6px}
+.ctag{font-size:10px;color:#4aa3ff;margin-left:6px}
+.orow{padding:8px 0;border-top:1px solid var(--line)}.orow .oh{display:flex;gap:8px;align-items:baseline}.orow .oh b{flex:1}
+.orow .oc{display:flex;gap:6px;margin-top:6px}.orow .oc button{flex:1;min-height:36px;font-size:12px}
+.cchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.cchips span{background:#17202b;border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:11px}.cchips span.c1{border-color:#b04040;color:#ff8a80}
 .sw.lock{opacity:.3;cursor:not-allowed;position:relative}
 .bar2{height:8px;background:#0b1320;border-radius:4px;overflow:hidden;margin:4px 0}.bar2 i{display:block;height:100%;background:var(--acc)}
 .arow2{padding:7px 0;border-top:1px solid var(--line);font-size:12px}.arow2.done b{color:#4cd964}.arow2.lk{color:var(--mute)}
@@ -180,17 +182,28 @@ label.sl{display:block;margin-bottom:8px}
 
 <!-- MENU -->
 <section id="scr-menu" class="screen">
-  <div class="panel">
-    <h2>Build a team. Survive a season.</h2>
-    <p class="mute">Pick a team style, spend FP to build 22 players, scout your opponent, then play the game.</p>
-    <button id="btnNew" class="big go">NEW RUN</button>
-    <button id="btnCont" class="big hide">CONTINUE RUN</button>
-    <button id="btnProg" class="big">PROGRESS &amp; ACHIEVEMENTS</button>
-    <div id="metaInfo" class="mute" style="margin-top:10px;font-size:12px"></div>
+  <div class="mode m1">
+    <h3>REGULAR RUN</h3>
+    <p class="mute">One season: build a team, play 8 games and the playoffs. Your result sets next run's bonus FP.</p>
+    <div class="row"><button id="btnNew" class="go">NEW RUN</button><button id="btnCont" class="hide">CONTINUE</button></div>
+    <div id="modeInfo0" class="mute minfo"></div>
+  </div>
+  <div class="mode m2">
+    <h3>CAREER</h3>
+    <p class="mute">Season after season. Your roster, cash and facilities carry over. Contracts end, stars age, and you decide who to keep.</p>
+    <div class="row"><button id="btnNewC" class="go">NEW CAREER</button><button id="btnContC" class="hide">CONTINUE</button></div>
+    <div id="modeInfo1" class="mute minfo"></div>
+  </div>
+  <div class="mode m3">
+    <h3>GAUNTLET</h3>
+    <p class="mute">One life. Win back-to-back games against stronger teams. A boss every 5th game, a shop every 3rd.</p>
+    <div class="row"><button id="btnNewG" class="go">NEW GAUNTLET</button><button id="btnContG" class="hide">CONTINUE</button></div>
+    <div id="modeInfo2" class="mute minfo"></div>
   </div>
   <div class="panel">
+    <button id="btnProg" class="big">PROGRESS &amp; ACHIEVEMENTS</button>
+    <div id="metaInfo" class="mute" style="margin-top:10px;font-size:12px"></div>
     <button id="btnSettings" class="big mini">SETTINGS</button>
-    <div class="mute" style="font-size:11px;margin-top:8px">Checkpoint 3: events, coaches and relics, legacy players and settings are in.</div>
   </div>
 </section>
 
@@ -205,6 +218,7 @@ label.sl{display:block;margin-bottom:8px}
 
 <!-- TEMPLATE -->
 <section id="scr-template" class="screen hide">
+  <div class="panel"><span class="lbl" id="tplMode"></span><p class="mute" id="tplModeText" style="margin:0"></p></div>
   <div class="panel"><span class="lbl">TEAM NAME</span><input class="tname" id="tnTpl" maxlength="12" placeholder="Your team name" autocomplete="off"><span class="lbl" style="margin-top:12px">JERSEY COLOUR</span><div class="swatches" id="swTpl"></div></div>
   <div class="panel"><h2>Choose a team style</h2><p class="mute">Each lifts a few spots to 58-70. Everyone else starts at 45-55. You then spend 250 FP.</p><div id="tplList"></div></div>
   <button id="tplBack" class="big">BACK</button>
@@ -217,9 +231,8 @@ label.sl{display:block;margin-bottom:8px}
   <div class="panel" id="staffBar" style="margin-top:0"></div>
   <div class="unit" id="unitBar"></div>
   <div id="rosterList"></div>
-  <div class="row" id="buildBtns"><button id="rAuto" class="mini">AUTO-SPEND</button><button id="rReset" class="mini">RESET</button><button id="rDev" class="mini">+50 FP (test)</button></div>
+  <div class="row" id="buildBtns"><button id="rAuto" class="mini">AUTO-SPEND</button><button id="rReset" class="mini">RESET</button></div>
   <button id="rNext" class="big go">START SEASON</button>
-  <button id="rTest" class="big mini">TEST GAME (any opponent)</button>
   <button id="rDone" class="big go hide">DONE</button>
   <button id="rMenu" class="big mini">MENU</button>
 </section>
@@ -228,7 +241,7 @@ label.sl{display:block;margin-bottom:8px}
 <section id="scr-scout" class="screen hide">
   <div id="scoutBar"></div>
   <div class="panel">
-    <div id="oppSelWrap"><span class="lbl">OPPONENT (test: pick any team)</span><select id="oppSel"></select></div>
+    
     <div id="oppHead"></div>
   </div>
   <div class="panel"><span class="lbl">MATCHUPS (green = your edge)</span><div id="matchups"></div></div>
@@ -247,6 +260,7 @@ label.sl{display:block;margin-bottom:8px}
   <div class="panel"><span class="lbl">SEASON</span><div id="schedChips" class="chips"></div><div id="staffLine" class="help" style="margin-top:8px"></div></div>
   <button id="shopRoster" class="big">EDIT ROSTER (spend cash and free points)</button>
   <button id="shopNext" class="big go">CONTINUE TO SCOUTING</button>
+  <button id="shopEnd" class="big mini">END RUN</button>
 </section>
 
 <!-- RUN OVER -->
@@ -254,13 +268,25 @@ label.sl{display:block;margin-bottom:8px}
   <div class="panel"><div id="overHead"></div><pre id="overBox" style="margin-top:10px"></pre></div>
   <div class="panel hide" id="overUnlPanel"><span class="lbl" style="color:#f5c518">UNLOCKED THIS RUN</span><div id="overUnl"></div></div>
   <button id="overNew" class="big go">NEW RUN</button>
+  <button id="overOff" class="big go hide">OFFSEASON: CONTRACTS</button>
+  <button id="overEnd" class="big hide">END CAREER</button>
+</section>
+
+<!-- OFFSEASON (CAREER) -->
+<section id="scr-offseason" class="screen hide">
+  <div id="offBar"></div>
+  <div class="panel"><span class="lbl">CONTRACTS ENDING</span><p class="help" id="offHelp"></p><div id="offList"></div><div id="offSum" style="margin-top:8px"></div></div>
+  <div class="panel"><span class="lbl">ALL CONTRACTS (YEARS LEFT)</span><div id="offAll" class="cchips"></div></div>
+  <div class="panel"><span class="lbl">FACILITIES</span><div id="offFacs"></div></div>
+  <button id="offGo" class="big go">CONTINUE: FP AND STAFF</button>
+  <button id="offEnd" class="big">END CAREER</button>
 </section>
 
 <!-- GAME -->
 <section id="scr-game" class="screen hide">
   <div id="hud" class="hud"></div>
   <canvas id="cv" width="480" height="560"></canvas>
-  <div class="row" id="snapRow"><button id="snap">SNAP</button><button id="skip">SKIP</button><button id="slowB" class="tog">SLOW</button><button id="fastB" class="tog">FAST</button></div>
+  <div class="row" id="snapRow"><button id="snap">SNAP</button><button id="skip">SKIP</button><button id="slowB" class="tog">SLOW</button><button id="fastB" class="tog">FAST</button><button id="statB" class="tog">STATS</button></div>
   <input type="checkbox" id="slow" hidden><input type="checkbox" id="fast" hidden>
   <div class="panel compact">
     <div id="formSheet" class="fsheet hide"></div>
@@ -321,13 +347,11 @@ label.sl{display:block;margin-bottom:8px}
     <label class="chk"><input type="checkbox" id="setSound"> Sound effects</label>
   </div>
   <div class="panel"><span class="lbl">SAVE DATA</span>
-    <button id="btnClearRun" class="big mini">DELETE CURRENT RUN</button>
+    <button id="btnClearRun" class="big mini">DELETE REGULAR RUN SAVE</button>
+    <button id="btnClearCareer" class="big mini">DELETE CAREER SAVE</button>
+    <button id="btnClearGaunt" class="big mini">DELETE GAUNTLET SAVE</button>
     <button id="btnClearAll" class="big mini">RESET EVERYTHING (run, records, bonus FP, legacy)</button>
     <div id="clearMsg" class="mute" style="margin-top:6px;font-size:12px"></div>
-  </div>
-  <div class="panel"><span class="lbl">DEVELOPER: BALANCE TEST</span>
-    <p class="help">Auto-plays full runs without graphics (events always take their first choice) and reports where they end. Uses your quarter length.</p>
-    <button id="btnHarness" class="big mini">SIMULATE 40 RUNS</button><div id="harnessOut" style="margin-top:8px;font-size:12px"></div>
   </div>
   <button id="setBack" class="big">BACK</button>
 </section>
@@ -1366,7 +1390,8 @@ function genDraft(seed){
   return d;
 }
 function pickedPerk(R,kind){return perkById(kind,R.draft[kind][R.picks[kind]])}
-function picksCost(R){return ['oc','dc','relic'].reduce((s,k)=>s+TIER_COST[pickedPerk(R,k).tier],0)}
+const perkCost=(R,k,id)=>(R.lastStaff&&R.lastStaff[k]===id)?0:TIER_COST[perkById(k,id).tier]; // keeping last season's pick is free in Career
+function picksCost(R){return ['oc','dc','relic'].reduce((s,k)=>s+perkCost(R,k,pickedPerk(R,k).id),0)}
 function computeMods(R){
   const m={off:{},def:{},eco:{}};
   ['oc','dc','relic'].forEach(k=>{
@@ -1482,7 +1507,7 @@ function chooseEvent(R,i){
 // ============================================================
 // META PROGRESSION: unlocks, achievements, cosmetic milestones, style levels
 // ============================================================
-const freshMeta=()=>({bonusFP:0,runs:0,titles:0,best:-1,pool:null,unl:{},ach:{},cnt:{games:0,wins:0,tds:0,sacks:0,yards:0},sxp:{}});
+const freshMeta=()=>({cseasons:0,ctitles:0,gruns:0,gbest:0,bonusFP:0,runs:0,titles:0,best:-1,pool:null,unl:{},ach:{},cnt:{games:0,wins:0,tds:0,sacks:0,yards:0},sxp:{}});
 const metaOn=()=>typeof META!=='undefined'&&META&&META.unl;
 // ---- what starts unlocked ----
 const PLAY_START=['dive','power','sweep'],PASS_START=['slants','flood','verts'],TPL_START=['bal','ground'];
@@ -1590,8 +1615,8 @@ function checkMilestones(list){
 // Called once when a season game is resolved. R is the run AFTER resolveGame.
 function awardGame(G,R,gm){
   const y=G.stats.you,c=G.stats.cpu,won=G.score.you>G.score.cpu,list=[];
-  const cn=META.cnt;
-  cn.games++;if(won)cn.wins++;cn.tds+=y.td;cn.sacks+=c.sacks;cn.yards+=y.rushYds+y.passYds;
+  const cn=META.cnt,k=modeOf(R)==='gauntlet'?0.5:1; // Gauntlet counters count at half rate so a long streak cannot farm unlocks
+  cn.games+=k;if(won)cn.wins+=k;cn.tds+=y.td*k;cn.sacks+=c.sacks*k;cn.yards+=(y.rushYds+y.passYds)*k;
   const g={y,c,c0:G.score.cpu,won,margin:G.score.you-G.score.cpu,gm,R,rec:recordOf(R)};
   checkAch('game',g,list);
   if(R.phase==='over')awardRun(R,list);
@@ -1601,8 +1626,9 @@ function awardGame(G,R,gm){
 function awardRun(R,list){
   const fin=R.finish;
   // style XP: games played and won, playoffs count double, bonus for the title
-  let xp=0;R.results.forEach(r=>{xp+=(1+(r.y>r.c?2:0))*(r.stage==='regular'?1:2)});
+  let xp=0;R.results.forEach(r=>{xp+=(1+(r.y>r.c?2:0))*((r.stage==='regular'||r.stage==='gauntlet')?1:2)});
   if(fin==='title')xp+=10;
+  if(modeOf(R)==='gauntlet')xp=Math.round(xp/2);
   const before=styleLevel(META.sxp[R.tpl]||0);
   META.sxp[R.tpl]=(META.sxp[R.tpl]||0)+xp;
   const after=styleLevel(META.sxp[R.tpl]);
@@ -1624,8 +1650,8 @@ const styleNextText=(tpl,lv)=>{const u=(STYLE_UNLOCK[tpl]||{})[lv+1];return (STY
 // SEASON & ECONOMY (pure logic, testable headless)
 // ============================================================
 const CASH_PRICE=v=>v<70?10:v<85?20:40;
-const STADIUM_MULT=[0,1.0,1.25,1.5,1.8];
-const TP_PER_WEEK=[0,2,3,4];
+const STADIUM_MULT=[0,1.0,1.25,1.5,1.8,2.1,2.4,2.7,3.0];
+const TP_PER_WEEK=[0,2,3,4,5,6,7];
 const FACS=[
   {id:'stadium',name:'Stadium',start:1,max:4,cost:{2:150,3:400,4:800},desc:l=>'revenue x'+STADIUM_MULT[l]},
   {id:'training',name:'Training facility',start:0,max:3,cost:{1:150,2:350,3:650},desc:l=>l?TP_PER_WEEK[l]+' free attribute points each week':'none'},
@@ -1644,8 +1670,12 @@ function buildSchedule(seed){
   const picked=pool.filter((t,i)=>i!==drop);
   return picked.map(t=>({t,k:t.avg+(rng()-0.5)*6})).sort((a,b)=>a.k-b.k).map(x=>x.t.id);
 }
-function currentOppId(R){return R.stage==='regular'?R.schedule[R.week]:R.stage==='semi'?'anvils':'kings'}
-function stageLabel(R){return R.stage==='regular'?'Week '+(R.week+1)+' of '+REG_GAMES:R.stage==='semi'?'Playoff semifinal':'Championship final'}
+function currentOppId(R){if(R.mode==='gauntlet')return R.gOpp;return R.stage==='regular'?R.schedule[R.week]:R.stage==='semi'?'anvils':'kings'}
+function stageLabel(R){
+  if(R.mode==='gauntlet')return 'Game '+(R.week+1)+(R.gBoss?' · BOSS':'')+' · streak '+(R.streak||0);
+  const b=R.stage==='regular'?'Week '+(R.week+1)+' of '+REG_GAMES:R.stage==='semi'?'Playoff semifinal':'Championship final';
+  return R.mode==='career'?'S'+R.season+' · '+b:b;
+}
 function recordOf(R){let w=0,l=0,t=0;R.results.filter(r=>r.stage==='regular').forEach(r=>{if(r.y>r.c)w++;else if(r.y<r.c)l++;else t++});return {w,l,t}}
 
 function calcRevenue(R,y,c,playoff){
@@ -1704,18 +1734,24 @@ function describeOffer(o,roster){
 function applyOffer(R,o){
   if(o.type==='boost'){const p=R.roster[o.slot];p.attrs[o.attr]=Math.min(MAX_ATTR,p.attrs[o.attr]+o.amt)}
   else if(o.type==='group')GROUP_SLOTS[o.group].forEach(s=>{const p=R.roster[s];p.attrs[o.attr]=Math.min(MAX_ATTR,p.attrs[o.attr]+o.amt)});
-  else R.roster[o.slot]=JSON.parse(JSON.stringify(o.player));
+  else{
+    R.roster[o.slot]=JSON.parse(JSON.stringify(o.player));
+    if(modeOf(R)==='career'){const p=R.roster[o.slot];p.contract=3;p.resigns=0;p.root=Object.assign({},p.attrs)}
+  }
 }
 function buyOffer(R,o){
-  if(o.sold||R.cash<o.price)return false;
-  R.cash-=o.price;o.sold=true;applyOffer(R,o);return true;
+  if(o.sold)return false;
+  const free=R.freePick>0&&(o.type==='boost'||o.type==='group'); // a boss reward takes one boost or unit offer free
+  const price=free?0:o.price;
+  if(R.cash<price)return false;
+  R.cash-=price;o.sold=true;if(free)R.freePick--;applyOffer(R,o);return true;
 }
 function rerollShop(R){
   if(R.rerolls<=0)return false;
   R.rerolls--;R.nonce++;R.offers=genShop(R.seed,R.results.length,R.nonce,R.roster);return true;
 }
 function upgradeFac(R,id){
-  const f=FACS.find(x=>x.id===id),l=R.fac[id]+1;
+  const f=facsFor(R).find(x=>x.id===id),l=(R.fac[id]||0)+1;
   if(l>f.max||R.cash<f.cost[l])return false;
   R.cash-=f.cost[l];R.fac[id]=l;
   if(id==='scouting')R.rerolls++; // takes effect this week too
@@ -1797,6 +1833,139 @@ function simRunHeadless(seed,tplId,qLen){
   }
   return R;
 }
+
+
+// ============================================================
+// MODES: Gauntlet (one-life win streak) and Career (chained seasons)
+// Pure logic, testable headless. R.mode: 'season' (default) | 'career' | 'gauntlet'
+// ============================================================
+const MODE_NAME={season:'Regular run',career:'Career',gauntlet:'Gauntlet'};
+const modeOf=R=>(R&&R.mode)||'season';
+const oppBuff=R=>(R.buff||0)+(R.league||0);
+
+// ---------- Gauntlet ----------
+const G_START=46,G_STEP=1.6,G_BOSS_EVERY=5,G_BOSS_BONUS=4,G_SHOP_EVERY=3;
+const gTarget=n=>G_START+G_STEP*n;
+const gIsBoss=n=>(n+1)%G_BOSS_EVERY===0;
+// Pick the next opponent: a team near the ladder rating, or a top team (plus a bonus) every 5th game.
+function gauntletPrepare(R){
+  const n=R.week,boss=gIsBoss(n),target=gTarget(n)+(boss?G_BOSS_BONUS:0);
+  const rng=mulberry32((R.seed^Math.imul(n+7,2654435761))>>>0);
+  const pool=boss?TEAMS.slice().sort((a,b)=>b.avg-a.avg).slice(0,4)
+    :TEAMS.filter(t=>t.id!=='kings').sort((a,b)=>Math.abs(a.avg-target)-Math.abs(b.avg-target)).slice(0,3);
+  const t=pool[Math.floor(rng()*pool.length)];
+  R.gOpp=t.id;R.gBoss=boss;R.gTarget=Math.round(target);R.buff=target-t.avg;R.revMult=boss?2:1;
+}
+function startGauntlet(R){
+  R.mode='gauntlet';R.mods=computeMods(R);const eco=R.mods.eco;
+  if(eco.allAttr)Object.values(R.roster).forEach(p=>Object.keys(p.attrs).forEach(a=>{p.attrs[a]=Math.min(MAX_ATTR,p.attrs[a]+eco.allAttr)}));
+  Object.values(R.roster).forEach(p=>{p.base=Object.assign({},p.attrs)});
+  R.phase='season';R.cash=START_CASH+(eco.startCash||0);R.hype=50;R.week=0;R.stage='gauntlet';R.results=[];R.finish=null;
+  R.fac={stadium:1,training:0,scouting:0};R.tp=0;R.streak=0;R.shopOpen=false;R.freePick=0;R.offers=[];R.rerolls=0;R.nonce=0;R.ev=null;R.lastEv=null;R.step='scout';
+  gauntletPrepare(R);
+}
+function resolveGauntlet(R,y,c){
+  const eco=(R.mods&&R.mods.eco)||{};
+  const rev=calcRevenue(R,y,c,false); // a boss game pays double through revMult
+  let hd=hypeDelta(y,c);
+  hd=hd>0?Math.round(hd*(1+(eco.hypeGain||0))):Math.round(hd*(1-(eco.hypeLossCut||0)));
+  R.cash+=rev.total+(y>c?(eco.winCash||0):0);R.hype=clamp(R.hype+hd,0,100);
+  rev.winCash=y>c?(eco.winCash||0):0;
+  const boss=R.gBoss,n=R.week;
+  R.results.push({stage:'gauntlet',opp:R.gOpp,y,c,rev:rev.total,n,boss});
+  R.buff=0;R.revMult=1;
+  let finish=null;
+  if(y>c){
+    R.streak=(R.streak||0)+1;R.week++;R.tp+=TP_PER_WEEK[R.fac.training];
+    if(boss)R.freePick=(R.freePick||0)+1;
+    R.shopOpen=(R.week%G_SHOP_EVERY===0)||boss;
+    if(R.shopOpen){R.rerolls=R.fac.scouting+(eco.rerolls||0);R.nonce=0;R.offers=genShop(R.seed,R.week,0,R.roster)}
+    gauntletPrepare(R);
+  }else{finish='gauntlet';R.phase='over';R.finish='gauntlet'}
+  return {rev,hype:hd,finish};
+}
+
+// ---------- Career ----------
+const CAREER_FP_BASE=50,LEAGUE_STEP=0.5,RESIGN_DECLINE=2,DISCOUNT=[0.5,0.6,0.65,0.7,0.75];
+const discountOf=R=>DISCOUNT[(R.fac&&R.fac.front)||0];
+// First season of a career: stamp contracts (a mix of 1, 2 and 3 years) and each player's starting ratings.
+function careerInit(R){
+  const rng=mulberry32((R.seed^0xC0FFEE)>>>0);
+  R.mode='career';R.season=1;R.league=0;R.history=[];R.lastStaff=null;R.offseason=false;
+  Object.values(R.roster).forEach(p=>{p.root=Object.assign({},p.base);const u=rng();p.contract=u<0.3?1:u<0.65?2:3;p.resigns=0});
+}
+function investedCash(p){
+  let c=0;const root=p.root||p.base;
+  Object.keys(p.attrs).forEach(a=>{for(let v=root[a];v<p.attrs[a];v++)c+=CASH_PRICE(v)});
+  return c;
+}
+// Re-sign cost: the cash value of the points added since he joined, at the aging step's lower ratings, after the discount.
+function resignCost(R,p){
+  const q={attrs:{},root:p.root||p.base};
+  Object.keys(p.attrs).forEach(a=>{q.attrs[a]=Math.max(35,p.attrs[a]-RESIGN_DECLINE)});
+  return Math.max(30,Math.round(investedCash(q)*(1-discountOf(R))));
+}
+function makeRookie(R,slot,idx){
+  const d=SLOT_DEFS.find(x=>x[0]===slot),rng=mulberry32((R.seed^Math.imul(R.season*131+idx+1,40503))>>>0);
+  const bonus=Math.max(0,((R.fac&&R.fac.training)||0)-3)*2;
+  const attrs={};ATTR_KEYS[d[1]].forEach(a=>{attrs[a]=clamp(Math.round(50+(rng()*2-1)*5+bonus),40,70)});
+  return {slot,group:d[1],num:d[2],name:pickName(rng),attrs,base:Object.assign({},attrs),root:Object.assign({},attrs),contract:3,resigns:0,rookie:true};
+}
+// Season over: log it, tick every contract down a year, and list the players whose deals ended.
+function offseasonStart(R){
+  R.history.push({season:R.season,finish:R.finish,rec:recordOf(R),cash:R.cash});
+  Object.values(R.roster).forEach(p=>{p.contract=(p.contract||1)-1});
+  R.expiring=Object.keys(R.roster).filter(s=>R.roster[s].contract<=0);
+  const order=R.expiring.slice().sort((a,b)=>ovr(R.roster[b])-ovr(R.roster[a]));
+  let cash=R.cash;R.dec={};
+  order.forEach(s=>{const c=resignCost(R,R.roster[s]);if(c<=cash){R.dec[s]='keep';cash-=c}else R.dec[s]='go'});
+  R.phase='offseason';
+}
+function decisionCost(R){return R.expiring.reduce((s,k)=>s+(R.dec[k]==='keep'?resignCost(R,R.roster[k]):0),0)}
+function offseasonApply(R){
+  let idx=0;
+  R.expiring.forEach(s=>{
+    const p=R.roster[s];
+    if(R.dec[s]==='keep'){
+      const c=resignCost(R,p);
+      if(R.cash>=c){R.cash-=c;Object.keys(p.attrs).forEach(a=>{p.attrs[a]=Math.max(35,p.attrs[a]-RESIGN_DECLINE)});p.contract=3;p.resigns=(p.resigns||0)+1;return}
+    }
+    R.roster[s]=makeRookie(R,s,idx++);
+  });
+  R.expiring=[];R.dec={};
+}
+// After contracts: this season's FP (base plus the finishing bonus) and a fresh staff draft that includes last season's picks.
+function careerBuildStart(R){
+  R.phase='build';R.offseason=true;R.fpTotal=CAREER_FP_BASE+(FINISH[R.finish]?FINISH[R.finish].fp:0);
+  Object.values(R.roster).forEach(p=>{p.base=Object.assign({},p.attrs)});
+  R.lastStaff={oc:pickedPerk(R,'oc').id,dc:pickedPerk(R,'dc').id,relic:pickedPerk(R,'relic').id};
+  R.draft=genDraft((R.seed^Math.imul(R.season+1,2246822519))>>>0);
+  ['oc','dc','relic'].forEach(k=>{R.draft[k].push(R.lastStaff[k]);R.picks[k]=3});
+  R.open=null;
+}
+function startCareerSeason(R){
+  R.season++;R.league=LEAGUE_STEP*(R.season-1);
+  const prev=R.lastStaff||{};
+  R.mods=computeMods(R);const eco=R.mods.eco,newRelic=pickedPerk(R,'relic').id!==prev.relic;
+  if(eco.allAttr&&newRelic)Object.values(R.roster).forEach(p=>Object.keys(p.attrs).forEach(a=>{p.attrs[a]=Math.min(MAX_ATTR,p.attrs[a]+eco.allAttr)}));
+  Object.values(R.roster).forEach(p=>{p.base=Object.assign({},p.attrs)});
+  if(eco.startCash&&newRelic)R.cash+=eco.startCash;
+  R.buff=0;R.revMult=1;R.lastEv=null;R.unlocks=[];R.styleGain=null;
+  R.phase='season';R.offseason=false;R.hype=Math.round((R.hype+50)/2);
+  R.week=0;R.stage='regular';R.results=[];R.finish=null;R.schedule=buildSchedule((R.seed+R.season*977)>>>0);R.tp=0;
+  beginWeek(R);
+}
+
+// ---------- Facilities (Career gets more levels, a Front Office and a Film Room) ----------
+const FACS_CAREER=[
+  {id:'stadium',name:'Stadium',start:1,max:8,cost:{2:150,3:400,4:800,5:1300,6:1900,7:2600,8:3400},desc:l=>'revenue x'+STADIUM_MULT[l]},
+  {id:'training',name:'Training facility',start:0,max:6,cost:{1:150,2:350,3:650,4:1000,5:1500,6:2200},desc:l=>l?TP_PER_WEEK[l]+' free attribute points each week'+(l>3?', better rookies':''):'none'},
+  {id:'scouting',name:'Scouting',start:0,max:4,cost:{1:120,2:300,3:600,4:900},desc:l=>l?l+' shop reroll'+(l>1?'s':'')+' each week':'none'},
+  {id:'front',name:'Front office',start:0,max:4,cost:{1:400,2:700,3:1100,4:1600},desc:l=>'re-signing costs '+Math.round((1-DISCOUNT[l])*100)+'% of the points invested'},
+  {id:'film',name:'Film room',start:0,max:3,cost:{1:500,2:900,3:1400},desc:l=>l?'play stars come '+['','15%','30%','45%'][l]+' sooner':'none'}
+];
+const facsFor=R=>modeOf(R)==='career'?FACS_CAREER:FACS;
+const filmScale=R=>[1,0.85,0.7,0.55][(R&&R.fac&&R.fac.film)||0];
 
 
 // ============================================================
@@ -2044,13 +2213,19 @@ function buildRunTimeline(L){
     let v=3.6+((p||60)-50)/25,k=keys[keys.length-1],x=k.x,y=k.y,t=Math.max(tStart,k.t);
     if(t>k.t+0.001)keys.push({t,x,y,pose:k.pose});
     const tStop=tackle?Math.max(tEnd,t+0.3):tEnd+0.35;
-    if(tackle)v=Math.max(v,Math.hypot(rbEnd.x+0.3-x,rbEnd.y+0.25-y)/Math.max(0.3,tStop-t)*1.05);
-    while(t<tStop-0.001){
-      const dt=Math.min(0.1,tStop-t);t+=dt;
+    const t0=t,ex=rbEnd.x+0.3,ey=rbEnd.y+0.25;
+    if(tackle)v=Math.max(v,Math.hypot(ex-x,ey-y)/Math.max(0.3,tStop-t)*1.15);
+    const n=Math.max(1,Math.ceil((tStop-t)/0.1)),dt=(tStop-t)/n;
+    for(let i=1;i<=n;i++){
+      t=i===n?tStop:t0+dt*i;
       const c=at({keys:car},t),dx=c.x-x,dy=c.y-y,d=Math.hypot(dx,dy);
       let pose='run';
-      if(tackle&&t>=tStop-0.001){x=rbEnd.x+0.3;y=rbEnd.y+0.25;pose='stance'}
-      else if(d>0.55){const m=Math.min(d-0.5,v*dt);x+=dx/d*m;y+=dy/d*m}else pose='stance';
+      if(d>0.55){const m=Math.min(d-0.5,v*dt);x+=dx/d*m;y+=dy/d*m}else pose='stance';
+      if(tackle){ // ease onto the carrier's end spot over the last stretch so there is never a jump
+        const w=clamp((t-t0)/(tStop-t0),0,1),k=w*w*w;
+        x+=(ex-x)*k*0.5*dt/Math.max(dt,(tStop-t)+dt);y+=(ey-y)*k*0.5*dt/Math.max(dt,(tStop-t)+dt);
+        if(i===n){pose='stance'}
+      }
       keys.push({t,x,y,pose});
     }
   };
@@ -2277,7 +2452,13 @@ function drawRows(rows,x0,y0,sc,pal){
     ctx.fillStyle=pal[ch];ctx.fillRect(Math.round(x0+c*sc),Math.round(y0+r*sc),sc,sc);
   }
 }
-function drawSprite(sx,sy,a,pose,fr,label){
+function statOf(a){
+  if(a.num==null||!S.T)return null;
+  const side=a.type==='off'?S.offSide:S.defSide,R=S.T[side];if(!R)return null;
+  const p=Object.values(R).find(q=>q.num===a.num);
+  return p?ovr(p):null;
+}
+function drawSprite(sx,sy,a,pose,fr,label,stat){
   const num=a.num,pal=palFor(sideColor(a),a.pal),sc=2,w=10*sc;
   let rows=SPR[a.type].slice();
   if(pose==='run'&&fr)for(let k=0;k<4;k++)rows[10+k]=LEGS_B[k];
@@ -2294,7 +2475,13 @@ function drawSprite(sx,sy,a,pose,fr,label){
     ctx.font='bold 7px ui-monospace,Menlo,monospace';ctx.textAlign='center';
     ctx.fillStyle=pal.n;ctx.fillText(String(num),sx,y0+8*sc);
   }
-  if(label){
+  if(stat!=null){
+    const txt=String(stat),col=stat>=75?'#4cd964':stat>=60?'#f5c518':'#ff8a80',yy=y0-3;
+    ctx.font='bold 10px ui-monospace,Menlo,monospace';ctx.textAlign='center';
+    const tw=ctx.measureText(txt).width+8;
+    ctx.fillStyle='rgba(0,0,0,.78)';ctx.fillRect(sx-tw/2,yy-10,tw,13);
+    ctx.fillStyle=col;ctx.fillText(txt,sx,yy);
+  }else if(label){
     ctx.font='bold 8px ui-monospace,Menlo,monospace';ctx.textAlign='center';
     ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillText(label,sx+1,y0-2);
     ctx.fillStyle='#fff';ctx.fillText(label,sx,y0-3);
@@ -2426,7 +2613,7 @@ function draw(){
   const fr=Math.floor(t*9)%2;
   const list=S.tl.actors.filter(a=>a.type!=='ball').map(a=>({a,p:at(a,t)})).sort((u,v)=>v.p.y-u.p.y);
   const yMax=goal+9.3,yMin=-(100-goal)-9.3;
-  for(const {a,p} of list)drawSprite(X(p.x),Y(Math.max(yMin,Math.min(yMax,p.y)))+6,a,p.pose,fr,t<T_SNAP+0.5?a.label:'');
+  for(const {a,p} of list)drawSprite(X(p.x),Y(Math.max(yMin,Math.min(yMax,p.y)))+6,a,p.pose,fr,t<T_SNAP+0.5?a.label:'',S.showStats?statOf(a):null);
   // ball
   const ba=S.tl.actors.find(a=>a.type==='ball');
   if(ba){
@@ -2522,9 +2709,9 @@ const S={form:'std',formOpen:false,flip:false,hurryOn:false,mode:'off',kind:'run
 let RUN=null,OPPID='gulls';
 const fpUsed=()=>fpSpent(RUN.roster)+picksCost(RUN);
 const fpLeft=()=>RUN.fpTotal-fpUsed();
-const KEY='gr_run1';
-function save(){try{localStorage.setItem(KEY,JSON.stringify(RUN))}catch(e){}}
-function loadRun(){try{const j=localStorage.getItem(KEY);if(!j)return null;const r=JSON.parse(j);if(!r.phase)r.phase='build';if(!r.draft){r.draft=genDraft(r.seed);r.picks={oc:0,dc:0,relic:0}}if(r.phase==='season'&&!r.ev){r.ev=genEvent(r);r.step='event'}return r}catch(e){return null}}
+const KEYS={season:'gr_run1',career:'gr_career1',gauntlet:'gr_gaunt1'};
+function save(){try{localStorage.setItem(KEYS[modeOf(RUN)],JSON.stringify(RUN))}catch(e){}}
+function loadRun(mode){mode=mode||'season';try{const j=localStorage.getItem(KEYS[mode]);if(!j)return null;const r=JSON.parse(j);if(!r.phase)r.phase='build';if(!r.draft){r.draft=genDraft(r.seed);r.picks={oc:0,dc:0,relic:0}}if(r.phase==='season'&&!r.ev&&modeOf(r)!=='gauntlet'){r.ev=genEvent(r);r.step='event'}return r}catch(e){return null}}
 const SKEY='gr_set1';
 let SET={qlen:4,speed:'normal',haptics:true,sound:true,color:'#2f6bff',team:'',field:'classic'};
 try{const j=localStorage.getItem(SKEY);if(j)SET=Object.assign(SET,JSON.parse(j))}catch(e){}
@@ -2556,26 +2743,45 @@ function loadMeta(){try{const j=localStorage.getItem(MKEY);if(j)META=Object.assi
 function saveMeta(){try{localStorage.setItem(MKEY,JSON.stringify(META))}catch(e){}}
 loadMeta();
 const PAT_PASSES=['slants','mesh']; // short concepts that fit inside a two-yard field
-const SCREENS=['prog','menu','template','roster','scout','shop','event','picks','legacy','settings','game','result','over'];
+const SCREENS=['offseason','prog','menu','template','roster','scout','shop','event','picks','legacy','settings','game','result','over'];
 function show(name){syncMute&&syncMute();document.body.classList.toggle('ingame',name==='game');SCREENS.forEach(n=>$('scr-'+n).classList.toggle('hide',n!==name));try{window.scrollTo(0,0)}catch(e){}}
 function newSeed(){S.seed=(Math.random()*4294967296)>>>0}
 
 // ---------- menu & template ----------
 function refreshMenu(){
   grantStyleUnlocks();
-  $('btnCont').classList.toggle('hide',!loadRun());
+  const rs=loadRun('season'),rc=loadRun('career'),rg=loadRun('gauntlet');
+  $('btnCont').classList.toggle('hide',!rs);$('btnContC').classList.toggle('hide',!rc);$('btnContG').classList.toggle('hide',!rg);
+  $('btnNew').textContent='NEW RUN';$('btnNewC').textContent='NEW CAREER';$('btnNewG').textContent='NEW GAUNTLET';
   $('btnProg').textContent='PROGRESS & ACHIEVEMENTS ('+Object.keys(META.ach).length+'/'+ACH.length+')';
   const fn=['Missed playoffs','Lost in playoffs','Lost the final','Won the title'];
-  $('metaInfo').innerHTML='Runs played '+META.runs+' · titles '+META.titles+(META.best>=0?' · best: '+fn[META.best]:'')+(META.bonusFP?'<br>Bonus FP waiting for your next run: <b class="acc">+'+META.bonusFP+'</b>':'');
+  $('modeInfo0').innerHTML=(rs?'<b class="acc">Saved: '+(rs.phase==='build'?'building a team':rs.phase==='over'?'run finished':stageLabel(rs))+'</b><br>':'')+'Runs '+META.runs+' · titles '+META.titles+(META.best>=0?' · best: '+fn[META.best]:'')+(META.bonusFP?'<br>Bonus FP for your next run: <b class="acc">+'+META.bonusFP+'</b>':'');
+  $('modeInfo1').innerHTML=(rc?'<b class="acc">Saved: '+(rc.phase==='build'?(rc.offseason?'offseason, season '+(rc.season+1):'building a team'):rc.phase==='offseason'?'offseason after season '+rc.season:stageLabel(rc))+' · cash '+rc.cash+'</b><br>':'')+'Seasons played '+(META.cseasons||0)+' · titles '+(META.ctitles||0);
+  $('modeInfo2').innerHTML=(rg?'<b class="acc">Saved: '+(rg.phase==='build'?'building a team':rg.phase==='over'?'ended at streak '+(rg.streak||0):'game '+(rg.week+1)+' · streak '+(rg.streak||0))+'</b><br>':'')+'Best streak '+(META.gbest||0)+' · runs '+(META.gruns||0);
 }
-$('btnNew').onclick=()=>{buildTemplates();buildSwatches('swTpl');bindName('tnTpl');show('template')};
+function askNew(mode,btn){
+  if(loadRun(mode)&&S.confirm!==mode){
+    S.confirm=mode;btn.textContent='TAP AGAIN TO REPLACE SAVE';
+    setTimeout(()=>{if(S.confirm===mode){S.confirm=null;refreshMenu()}},4000);return;
+  }
+  S.confirm=null;S.newMode=mode;
+  $('tplMode').textContent=MODE_NAME[mode].toUpperCase();
+  $('tplModeText').textContent=mode==='career'?'Your first season. Pick a style and build the roster. Contracts, aging and the offseason come after.':mode==='gauntlet'?'Build once, then win as many games in a row as you can. One loss ends the run.':'One season with a playoff. Pick a style and build the roster.';
+  buildTemplates();buildSwatches('swTpl');bindName('tnTpl');show('template');
+}
+$('btnNew').onclick=()=>askNew('season',$('btnNew'));
+$('btnNewC').onclick=()=>askNew('career',$('btnNewC'));
+$('btnNewG').onclick=()=>askNew('gauntlet',$('btnNewG'));
 $('btnSettings').onclick=()=>{loadSettingsUI();show('settings')};
-$('btnCont').onclick=()=>{
-  const r=loadRun();if(!r)return;RUN=r;
-  if(RUN.phase==='build'){renderRoster();show('roster')}
-  else if(RUN.phase==='season'){if(RUN.step==='event')showEvent();else{renderShop();show('shop')}}
-  else showOver();
-};
+function resumeRun(){
+  const m=modeOf(RUN);
+  if(RUN.phase==='build'){renderRoster();show('roster');return}
+  if(RUN.phase==='offseason'){renderOffseason();show('offseason');return}
+  if(RUN.phase==='over'){showOver();return}
+  if(m==='gauntlet'){if(RUN.shopOpen){renderShop();show('shop')}else{buildScout();show('scout')}return}
+  if(RUN.step==='event')showEvent();else{renderShop();show('shop')}
+}
+['season','career','gauntlet'].forEach((m,i)=>{$(['btnCont','btnContC','btnContG'][i]).onclick=()=>{const r=loadRun(m);if(!r)return;RUN=r;resumeRun()}});
 $('tplBack').onclick=()=>{refreshMenu();show('menu')};
 function tplTags(t){
   const out=[];
@@ -2616,9 +2822,11 @@ function buildTemplates(){
 }
 function startRun(tplId){
   const seed=(Math.random()*4294967296)>>>0;
-  RUN={seed,tpl:tplId,phase:'build',fpTotal:START_FP+META.bonusFP,open:null,roster:genUserRoster(seed,tplId),draft:genDraft(seed),picks:{oc:0,dc:0,relic:0},legacy:null};
-  META.bonusFP=0;saveMeta();save();
-  if(META.pool&&META.pool.length){buildLegacy();show('legacy')}else{renderRoster();show('roster')}
+  const mode=S.newMode||'season';
+  RUN={seed,tpl:tplId,mode,phase:'build',fpTotal:START_FP+(mode==='season'?META.bonusFP:0),open:null,roster:genUserRoster(seed,tplId),draft:genDraft(seed),picks:{oc:0,dc:0,relic:0},legacy:null};
+  if(mode==='season')META.bonusFP=0;
+  saveMeta();save();
+  if(mode==='season'&&META.pool&&META.pool.length){buildLegacy();show('legacy')}else{renderRoster();show('roster')}
 }
 
 // ---------- roster & FP ----------
@@ -2627,7 +2835,7 @@ const DEF_ORDER=['DE-L','DT-L','DT-R','DE-R','LB-L','LB-M','LB-R','CB-L','CB-R',
 function playerRow(p){
   const open=RUN.open===p.slot,build=RUN.phase==='build';
   const chg=Object.keys(p.attrs).reduce((s,a)=>s+(p.attrs[a]-p.base[a]),0);
-  let h='<div class="prow" data-slot="'+p.slot+'"><div class="phead"><span class="num">#'+p.num+'</span><span class="pos">'+SLOT_LABEL[p.slot]+'</span><span class="nm">'+p.name+'</span>'+(chg?'<span class="chg">+'+chg+'</span>':'')+'<span class="ov">'+ovr(p)+'</span></div>';
+  let h='<div class="prow" data-slot="'+p.slot+'"><div class="phead"><span class="num">#'+p.num+'</span><span class="pos">'+SLOT_LABEL[p.slot]+'</span><span class="nm">'+p.name+(modeOf(RUN)==='career'?'<span class="ctag">'+(p.contract||1)+'y</span>':'')+'</span>'+(chg?'<span class="chg">+'+chg+'</span>':'')+'<span class="ov">'+ovr(p)+'</span></div>';
   if(open){
     h+='<div class="attrs">';
     ATTR_KEYS[p.group].forEach(a=>{
@@ -2644,11 +2852,13 @@ function playerRow(p){
 function renderRoster(){
   const r=RUN.roster,build=RUN.phase==='build';
   $('fpbar').classList.toggle('hide',!build);$('cashbar').classList.toggle('hide',build);
-  ['buildBtns','rNext','rTest'].forEach(id=>$(id).classList.toggle('hide',!build));
+  ['buildBtns','rNext'].forEach(id=>$(id).classList.toggle('hide',!build));
   $('rDone').classList.toggle('hide',build);
+  $('rReset').classList.toggle('hide',!!RUN.offseason);
+  $('rNext').textContent=modeOf(RUN)==='gauntlet'?'START THE GAUNTLET':RUN.offseason?'START SEASON '+(RUN.season+1):modeOf(RUN)==='career'?'START CAREER (SEASON 1)':'START SEASON';
   if(build){$('fpLeft').textContent=fpLeft();$('fpTotal').textContent=RUN.fpTotal;$('fpSpent').textContent=fpUsed()}
   else{$('cashLeft').textContent=RUN.cash;$('tpLeft').textContent=RUN.tp}
-  const names=['oc','dc','relic'].map(k=>{const p=pickedPerk(RUN,k);return '<div class="kp"><span class="mute">'+(k==='oc'?'OC':k==='dc'?'DC':'Relic')+'</span> <b>'+p.name+'</b> <span class="mute">'+(TIER_COST[p.tier]?TIER_COST[p.tier]+' FP':'free')+'</span></div>'}).join('');
+  const names=['oc','dc','relic'].map(k=>{const p=pickedPerk(RUN,k);return '<div class="kp"><span class="mute">'+(k==='oc'?'OC':k==='dc'?'DC':'Relic')+'</span> <b>'+p.name+'</b> <span class="mute">'+(perkCost(RUN,k,p.id)?perkCost(RUN,k,p.id)+' FP':'free')+'</span></div>'}).join('');
   $('staffBar').innerHTML='<span class="lbl">STAFF AND RELIC</span>'+names+(build?'<button id="staffEdit" class="big mini">COACHES AND RELICS</button>':'');
   if(build)$('staffEdit').onclick=()=>{renderPicks();show('picks')};
   const u=units(r);
@@ -2674,31 +2884,42 @@ $('rosterList').onclick=e=>{
 };
 $('rAuto').onclick=()=>{autoSpend(RUN.roster,RUN.fpTotal-picksCost(RUN));save();renderRoster()};
 $('rReset').onclick=()=>{RUN.roster=genUserRoster(RUN.seed,RUN.tpl);RUN.legacy=null;RUN.picks={oc:0,dc:0,relic:0};RUN.fpTotal=START_FP;RUN.open=null;save();renderRoster()};
-$('rDev').onclick=()=>{RUN.fpTotal+=50;save();renderRoster()};
-$('rNext').onclick=()=>{startSeason(RUN);RUN.open=null;save();showEvent()};
-$('rTest').onclick=()=>{buildScout();show('scout')};
-$('rDone').onclick=()=>{renderShop();show('shop')};
+$('rNext').onclick=()=>{
+  const m=modeOf(RUN);
+  if(m==='gauntlet'){startGauntlet(RUN);RUN.open=null;save();buildScout();show('scout');return}
+  if(m==='career'){
+    if(RUN.offseason)startCareerSeason(RUN);
+    else{careerInit(RUN);startSeason(RUN);RUN.fac.front=0;RUN.fac.film=0}
+    RUN.open=null;save();showEvent();return;
+  }
+  startSeason(RUN);RUN.open=null;save();showEvent();
+};
+$('rDone').onclick=()=>{if(modeOf(RUN)==='gauntlet'&&!RUN.shopOpen){buildScout();show('scout')}else{renderShop();show('shop')}};
 $('rMenu').onclick=()=>{refreshMenu();show('menu')};
 
 // ---------- scouting ----------
 function buildScout(){
   const season=RUN.phase==='season';
-  $('oppSelWrap').classList.toggle('hide',season);
-  const sel=$('oppSel');
-  if(season){OPPID=currentOppId(RUN);statusBar('scoutBar')}
+  if(season){OPPID=currentOppId(RUN);statusBar('scoutBar');$('sBack').textContent=(modeOf(RUN)==='gauntlet'&&!RUN.shopOpen)?'EDIT ROSTER':'BACK'}
   else{
+    $('sBack').textContent='BACK';
     $('scoutBar').innerHTML='';
-    if(!sel.options.length)TEAMS.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+' ('+t.avg+')';sel.appendChild(o)});
-    sel.value=OPPID;
   }
   renderScout();
 }
-$('oppSel').onchange=()=>{OPPID=$('oppSel').value;renderScout()};
 function best(r,groups,fn){return slotsOf(r,groups).reduce((a,b)=>fn(b)>fn(a)?b:a)}
 function kp(p,note){return '<div class="kp"><b>#'+p.num+'</b> '+p.name+' <span class="mute">'+SLOT_LABEL[p.slot]+'</span> · ovr '+ovr(p)+(note?' · '+note:'')+'</div>'}
 function scoutPieces(team,buff){
   const opp=genTeamRoster(team,buff),yu=units(RUN.roster),ou=units(opp);
-  const head='<div><b>'+team.name+'</b> <span class="mute">'+team.arche+' · overall '+(team.avg+buff)+'</span></div><div class="mute" style="font-size:12px">'+team.note+'</div>'+(buff>0?'<div class="bad" style="margin-top:4px;font-size:12px">Fired up: +'+buff+' on every attribute.</div>':buff<0?'<div class="ok" style="margin-top:4px;font-size:12px">Caught off guard: '+buff+' on every attribute.</div>':'');
+  const ov=Math.round(team.avg+buff),gm=modeOf(RUN)==='gauntlet'&&RUN.phase==='season',lg=RUN.league||0,ev=RUN.buff||0;
+  let note='';
+  if(gm)note='<div class="'+(RUN.gBoss?'bad':'mute')+'" style="margin-top:4px;font-size:12px">'+(RUN.gBoss?'BOSS GAME: stronger than the ladder, and it pays double plus a free boost or unit offer.':'Gauntlet game '+(RUN.week+1)+'. Opponents get stronger every game.')+'</div>';
+  else{
+    if(lg)note+='<div class="mute" style="margin-top:4px;font-size:12px">League strength +'+lg+' this season.</div>';
+    if(ev>0)note+='<div class="bad" style="margin-top:4px;font-size:12px">Fired up: +'+ev+' on every attribute.</div>';
+    else if(ev<0)note+='<div class="ok" style="margin-top:4px;font-size:12px">Caught off guard: '+ev+' on every attribute.</div>';
+  }
+  const head='<div><b>'+team.name+'</b> <span class="mute">'+team.arche+' · overall '+ov+'</span></div><div class="mute" style="font-size:12px">'+team.note+'</div>'+note;
   const rows=[
     ['Pass block vs rush',yu.OLp,ou.DLp],['Run block vs stop',yu.OLr,ou.DLr],['Receivers vs DBs',yu.WR,ou.DBc],['RB vs LBs',yu.RBp,ou.LBr],
     ['Pass rush vs block',yu.DLp,ou.OLp],['Run stop vs block',yu.DLr,ou.OLr],['Coverage vs WRs',yu.DBc,ou.WR],['LBs vs RB',yu.LBr,ou.RBp]
@@ -2724,7 +2945,7 @@ function scoutPieces(team,buff){
   return {head,match,key,tend:lines.map(l=>'<div class="kp">'+l+'</div>').join('')};
 }
 function renderScout(){
-  const team=TEAMS.find(t=>t.id===OPPID),buff=RUN.phase==='season'?(RUN.buff||0):0,p=scoutPieces(team,buff);
+  const team=TEAMS.find(t=>t.id===OPPID),buff=RUN.phase==='season'?oppBuff(RUN):0,p=scoutPieces(team,buff);
   $('oppHead').innerHTML=p.head;$('matchups').innerHTML=p.match;$('keyPlayers').innerHTML=p.key;$('tendencies').innerHTML=p.tend;
 }
 function fillGameRoster(){
@@ -2743,12 +2964,16 @@ function fillGameScout(team,buff){
   $('gHead').innerHTML=p.head;$('gMatch').innerHTML='<span class="lbl" style="margin-top:8px">MATCHUPS (green = your edge)</span>'+p.match;
   $('gKey').innerHTML='<span class="lbl">KEY PLAYERS</span>'+p.key;$('gTend').innerHTML='<span class="lbl">TENDENCIES</span>'+p.tend;
 }
-$('sBack').onclick=()=>{if(RUN.phase==='season'){renderShop();show('shop')}else{renderRoster();show('roster')}};
+$('sBack').onclick=()=>{
+  if(RUN.phase==='season'){
+    if(modeOf(RUN)==='gauntlet'&&!RUN.shopOpen){renderRoster();show('roster')}else{renderShop();show('shop')}
+  }else{renderRoster();show('roster')}
+};
 $('sGo').onclick=()=>startGame();
 
 // ---------- game ----------
 // ---- play familiarity (stars, reset each run) and the opponent's read on your calls (per game) ----
-const famStars=id=>{const n=(RUN&&RUN.fam&&RUN.fam[id])||0;return n>=STAR_AT[2]?3:n>=STAR_AT[1]?2:n>=STAR_AT[0]?1:0};
+const famStars=id=>{const n=(RUN&&RUN.fam&&RUN.fam[id])||0,k=filmScale(RUN),T=STAR_AT.map(x=>Math.round(x*k));return n>=T[2]?3:n>=T[1]?2:n>=T[0]?1:0};
 const readLvl=id=>{const r=(S.read&&S.read[id])||0;return r>=2.4?2:r>=1.5?1:0};
 const badge=(id,html)=>{const st=famStars(id),rl=readLvl(id);return html+(st?'<span class="st">'+'★'.repeat(st)+'</span>':'')+(rl?'<span class="rdot l'+rl+'">'+(rl>1?'●●':'●')+'</span>':'')};
 function refreshRead(){
@@ -2760,14 +2985,14 @@ function startGame(){
   const season=RUN.phase==='season';
   const team=TEAMS.find(t=>t.id===(season?currentOppId(RUN):OPPID));
   S.gameType=season?'season':'test';S.resolved=false;S.gm={maxTrail:0,longPass:0,twoPt:false,bigComp:0,goalTD:0};S.read={};S.readForm={};S.formOpen=false;
-  S.opp={team,roster:genTeamRoster(team,season?(RUN.buff||0):0),tend:team.tend};
+  S.opp={team,roster:genTeamRoster(team,season?oppBuff(RUN):0),tend:team.tend};
   S.T={you:RUN.roster,cpu:S.opp.roster};
   S.M={you:computeMods(RUN),cpu:null};
   $('slow').checked=SET.speed==='slow';$('fast').checked=SET.speed==='fast';syncSpeedBtns();
   S.G=newGame({qLen:SET.qlen,seed:(Math.random()*4294967296)>>>0});
   S.msg='KICKOFF: you receive at your own 25.\nOpponent: '+team.name+' ('+team.arche+').';
   S.kind='run';S.primary=null;S.gap=PLAYS[S.play].gaps.includes(S.gap)?S.gap:PLAYS[S.play].gaps[0];
-  fillGameScout(team,season?(RUN.buff||0):0);fillGameRoster();
+  fillGameScout(team,season?oppBuff(RUN):0);fillGameRoster();
   $('rosBody').classList.add('hide');$('rosToggle').textContent='YOUR ROSTER ▸';
   $('scoutBody').classList.add('hide');$('logBody').classList.add('hide');$('scoutToggle').textContent='SCOUTING REPORT (tips) ▸';$('logToggle').textContent='PLAY LOG ▸';$('logLast').textContent='';
   show('game');newSeed();prepare();
@@ -2799,7 +3024,7 @@ function clockText(G){return Math.floor(G.clock/60)+':'+String(Math.floor(G.cloc
 function updateHud(){
   const G=S.G,sh=S.opp?S.opp.team.short:'CPU';
   const qn=G.q===5?'OT':'Q'+G.q;
-  $('hud').innerHTML='<div class="hrow"><span class="hq">'+qn+' '+clockText(G)+'</span><span class="hs '+(G.poss==='you'?'poss':'')+'">'+myName()+' '+G.score.you+'</span><span class="hs '+(G.poss==='cpu'?'poss':'')+'">'+sh+' '+G.score.cpu+'</span></div>'+
+  $('hud').innerHTML='<div class="hrow"><span class="hq">'+qn+' '+clockText(G)+'</span><span class="hs '+(G.poss==='you'?'poss':'')+'"><span class="hn">'+myName()+'</span><span class="hsc">'+G.score.you+'</span></span><span class="hs '+(G.poss==='cpu'?'poss':'')+'"><span class="hn">'+sh+'</span><span class="hsc">'+G.score.cpu+'</span></span></div>'+
     '<div class="hrow2">'+(G.over?'FINAL':G.pending?'POINT AFTER · '+(G.patSide==='you'?myName():sh)+': kick (+1) or go for two (+2)':ORD[G.down]+' &amp; '+(G.toGo>=100-G.ballOn?'Goal':G.toGo)+' · '+(G.poss==='you'?myName():sh)+' ball at '+spotText(G.ballOn)+hashTxt(G))+'</div>';
 }
 function boxScore(G){
@@ -2860,7 +3085,7 @@ function formHint(id){
 function renderFormSheet(){
   const el=$('formSheet');el.classList.toggle('hide',!S.formOpen);
   if(!S.formOpen)return;
-  el.innerHTML='<div class="fshead"><span class="lbl" style="margin:0">FORMATION</span><button class="mini'+(S.flip?' on':'')+'" id="fsFlip">FLIP: '+(S.flip?'ON':'OFF')+'</button><button class="mini" id="fsX">X</button></div><div class="gaps g4s" id="fsGrid"></div><div class="fstag" id="fsTag"></div>';
+  el.innerHTML='<div class="fshead"><span class="lbl" style="margin:0">FORMATION</span><button class="mini" id="fsX">X</button></div><div class="gaps g4s" id="fsGrid"></div><div class="fstag" id="fsTag"></div>';
   $('fsX').onclick=()=>{S.formOpen=false;renderFormSheet();buildGapButtons()};
   const g=$('fsGrid'),tag=$('fsTag');
   tag.textContent=FORMS[S.form].name+': '+FORMS[S.form].tag;
@@ -2874,7 +3099,6 @@ function renderFormSheet(){
     };
     g.appendChild(b);
   });
-  $('fsFlip').onclick=()=>{S.flip=!S.flip;renderFormSheet();buildGapButtons();prepare(true)};
 }
 function buildGapButtons(){
   if(S.kind==='special'||S.G.pending)S.formOpen=false;
@@ -2886,14 +3110,14 @@ function buildGapButtons(){
   if(!runList().length)rb.disabled=true;
   btn(kb,'PASS',S.kind==='pass',()=>{S.kind='pass';buildGapButtons();prepare(true)},'font-size:13px');
   btn(kb,S.G.pending?'KICK XP':'KICK',S.kind==='special',()=>{S.kind='special';buildGapButtons();prepare(true)},'font-size:12px');
-  const forms=FORM_LIST.filter(formOK);
+  const forms=FORM_LIST.filter(formOK),lock=S.G.pending||S.kind==='special';
+  kb.className='gaps kinds '+(forms.length>1?'g6':'g5');
   if(forms.length>1){
-    const fb=btn(kb,FORMS[S.form].short+(S.flip?' ⇄':'')+' ▾',S.formOpen,()=>{S.formOpen=!S.formOpen;renderFormSheet();buildGapButtons()},'font-size:11px');
-    if(S.G.pending||S.kind==='special')fb.disabled=true;
-  }else{
-    const fb=btn(kb,'FLIP',!!S.flip&&!S.G.pending,()=>{S.flip=!S.flip;buildGapButtons();prepare(true)},'font-size:11px');
-    if(S.G.pending||S.kind==='special')fb.disabled=true;
+    const fb=btn(kb,FORMS[S.form].short+' ▾',S.formOpen,()=>{S.formOpen=!S.formOpen;renderFormSheet();buildGapButtons()},'font-size:11px');
+    if(lock)fb.disabled=true;
   }
+  const fl=btn(kb,'FLIP',!!S.flip&&!S.G.pending,()=>{S.flip=!S.flip;buildGapButtons();prepare(true)},'font-size:11px');
+  if(lock)fl.disabled=true;
   refreshRead();
   const hb=btn(kb,'HURRY',S.hurryOn&&!S.G.pending,()=>{S.hurryOn=!S.hurryOn;buildGapButtons();prepare(true)},'font-size:11px');
   if(S.G.pending)hb.disabled=true;
@@ -2938,6 +3162,10 @@ $('rosToggle').onclick=()=>{const h=$('rosBody').classList.toggle('hide');$('ros
 function syncMute(){$('muteBtn').textContent=SET.sound?'🔊':'🔇';$('muteBtn').style.opacity=SET.sound?'1':'.7';const c=$('setSound');if(c)c.checked=!!SET.sound}
 $('muteBtn').onclick=()=>{SET.sound=!SET.sound;saveSet();syncMute();if(SET.sound)beep(660,0.1)};
 function syncSpeedBtns(){$('slowB').className='tog'+($('slow').checked?' on':'');$('fastB').className='tog'+($('fast').checked?' on':'')}
+{const sb=$('statB'),on=v=>e=>{e.preventDefault();S.showStats=v;sb.className='tog'+(v?' on':'')};
+  ['pointerdown','touchstart'].forEach(ev=>sb.addEventListener(ev,on(true),{passive:false}));
+  ['pointerup','pointerleave','pointercancel','touchend','touchcancel'].forEach(ev=>sb.addEventListener(ev,on(false),{passive:false}));
+  sb.addEventListener('contextmenu',e=>e.preventDefault())}
 $('slowB').onclick=()=>{$('slow').checked=!$('slow').checked;if($('slow').checked)$('fast').checked=false;syncSpeedBtns()};
 $('fastB').onclick=()=>{$('fast').checked=!$('fast').checked;if($('fast').checked)$('slow').checked=false;syncSpeedBtns()};
 $('logToggle').onclick=()=>{const h=$('logBody').classList.toggle('hide');$('logToggle').textContent='PLAY LOG '+(h?'▸':'▾')};
@@ -3007,18 +3235,27 @@ function statRows(G){
     ['Plays',y.plays,c.plays,y.plays,c.plays,0]
   ];
 }
+function metaOver(){
+  const m=modeOf(RUN);
+  if(m==='gauntlet'){META.gruns=(META.gruns||0)+1;META.gbest=Math.max(META.gbest||0,RUN.streak||0)}
+  else if(m==='career'){META.cseasons=(META.cseasons||0)+1;if(RUN.finish==='title')META.ctitles=(META.ctitles||0)+1}
+  else{
+    META.runs++;META.bonusFP=FINISH[RUN.finish].fp;if(RUN.finish==='title')META.titles++;
+    META.best=Math.max(META.best,['missed','playoffs','final','title'].indexOf(RUN.finish));
+    META.pool=Object.values(RUN.roster).map(p=>({slot:p.slot,group:p.group,num:p.num,name:p.name,attrs:Object.assign({},p.attrs),ovr:ovr(p)}));
+  }
+  saveMeta();
+}
 function showResult(){
   const G=S.G,t=S.opp.team,y=G.score.you,c=G.score.cpu,season=S.gameType==='season';
   const res=y>c?'VICTORY':y<c?'DEFEAT':'TIE',col=y>c?'ok':y<c?'bad':'acc';
   if(y>c)fx('win');else if(y<c)fx('loss');
   if(season&&!S.resolved){
     S.resolvedStage=stageLabel(RUN);
-    S.lastRes=resolveGame(RUN,y,c);S.resolved=true;
+    S.lastRes=modeOf(RUN)==='gauntlet'?resolveGauntlet(RUN,y,c):resolveGame(RUN,y,c);S.resolved=true;
     S.newUnl=awardGame(G,RUN,S.gm||{maxTrail:0,longPass:0,twoPt:false});RUN.unlocks=(RUN.unlocks||[]).concat(S.newUnl);saveMeta();
     if(RUN.phase==='over'){
-      META.runs++;META.bonusFP=FINISH[RUN.finish].fp;if(RUN.finish==='title')META.titles++;
-      META.best=Math.max(META.best,['missed','playoffs','final','title'].indexOf(RUN.finish));
-      META.pool=Object.values(RUN.roster).map(p=>({slot:p.slot,group:p.group,num:p.num,name:p.name,attrs:Object.assign({},p.attrs),ovr:ovr(p)}));saveMeta();
+      metaOver();
     }
     save();
   }
@@ -3042,16 +3279,20 @@ function showResult(){
       '<tr class="tot"><td>Revenue</td><td>+'+r.total+'</td></tr></table>'+
       '<div style="margin-top:10px;display:flex;justify-content:space-between"><span class="mute">Cash</span><b class="acc">'+(RUN.cash-r.total-(r.winCash||0))+' → '+RUN.cash+'</b></div>'+
       '<div style="margin-top:4px;display:flex;justify-content:space-between"><span class="mute">Hype</span><b>'+(RUN.hype-S.lastRes.hype)+' → '+RUN.hype+' ('+(S.lastRes.hype>=0?'+':'')+S.lastRes.hype+')</b></div>'+
-      (S.lastRes.finish?'':'<div class="mute" style="margin-top:8px;font-size:11px">Next: '+stageLabel(RUN)+'</div>');
-    $('resNext').textContent=RUN.phase==='over'?'SEE RUN SUMMARY':'CONTINUE';
+      (S.lastRes.finish?'':'<div class="mute" style="margin-top:8px;font-size:11px">Next: '+stageLabel(RUN)+(modeOf(RUN)==='gauntlet'&&RUN.shopOpen?' · shop opens first':'')+'</div>');
+    $('resNext').textContent=RUN.phase==='over'?(modeOf(RUN)==='career'?'SEE SEASON SUMMARY':'SEE RUN SUMMARY'):'CONTINUE';
   }
   show('result');
 }
-$('resNext').onclick=()=>{if(RUN.phase==='over')showOver();else showEvent()};
+$('resNext').onclick=()=>{
+  if(RUN.phase==='over'){showOver();return}
+  if(modeOf(RUN)==='gauntlet'){if(RUN.shopOpen){renderShop();show('shop')}else{buildScout();show('scout')}return}
+  showEvent();
+};
 $('resAgain').onclick=()=>startGame();
 $('resOpp').onclick=()=>{buildScout();show('scout')};
 $('resRoster').onclick=()=>{renderRoster();show('roster')};
-$('overNew').onclick=()=>{RUN=null;try{localStorage.removeItem(KEY)}catch(e){}refreshMenu();show('menu')};
+$('overNew').onclick=()=>{const m=modeOf(RUN);RUN=null;try{localStorage.removeItem(KEYS[m])}catch(e){}refreshMenu();show('menu')};
 $('resMenu').onclick=()=>{refreshMenu();show('menu')};
 
 
@@ -3078,8 +3319,8 @@ $('progBack').onclick=()=>{refreshMenu();show('menu')};
 
 // ---------- season UI: status bar, shop, facilities, run over ----------
 function statusBar(id){
-  const rec=recordOf(RUN);
-  $(id).innerHTML='<div class="statbar"><span>'+stageLabel(RUN)+'</span><span>'+rec.w+'-'+rec.l+(rec.t?'-'+rec.t:'')+'</span><span>Cash <b>'+RUN.cash+'</b></span><span>Hype <b>'+RUN.hype+'</b></span></div>';
+  const rec=recordOf(RUN),g=modeOf(RUN)==='gauntlet';
+  $(id).innerHTML='<div class="statbar"><span>'+stageLabel(RUN)+'</span>'+(g?'':'<span>'+rec.w+'-'+rec.l+(rec.t?'-'+rec.t:'')+'</span>')+'<span>Cash <b>'+RUN.cash+'</b></span><span>Hype <b>'+RUN.hype+'</b></span></div>';
 }
 function cmpRows(rows){
   let h='<div class="cmp"><span class="h"></span><span class="h">now</span><span class="h"></span><span class="h">after</span>';
@@ -3089,29 +3330,43 @@ function cmpRows(rows){
   });
   return h+'</div>';
 }
+function renderFacs(id,again){
+  const fe=$(id);fe.innerHTML='';
+  facsFor(RUN).forEach(f=>{
+    const l=RUN.fac[f.id]||0,div=document.createElement('div');div.className='fac';
+    div.innerHTML='<div class="row2"><b>'+f.name+'</b><span class="pips">'+'●'.repeat(l)+'○'.repeat(f.max-l)+'</span></div><small>Now: '+f.desc(l)+'</small>'+(l<f.max?'<small>Next level: '+f.desc(l+1)+'</small>':'');
+    const b=document.createElement('button');
+    if(l>=f.max){b.textContent='MAX LEVEL';b.disabled=true}
+    else{const c=f.cost[l+1],can=RUN.cash>=c;b.textContent=can?'UPGRADE · '+c+' cash':'NEED '+(c-RUN.cash)+' MORE · price '+c;b.disabled=!can;if(can)b.className='go';b.onclick=()=>{if(upgradeFac(RUN,f.id)){save();again()}}}
+    div.appendChild(b);fe.appendChild(div);
+  });
+}
 function renderShop(){
   statusBar('shopBar');
+  $('shopEnd').textContent=modeOf(RUN)==='career'?'END CAREER':'END RUN';S.endArm=null;
   if(RUN.tp>0)$('shopBar').innerHTML+='<div class="statbar" style="justify-content:center"><span>Free attribute points: <b>'+RUN.tp+'</b> · spend them in Edit Roster</span></div>';
-  const el=$('offers');el.innerHTML='<p class="help">Boosts and unit boosts are cheaper than buying points yourself. Free agents replace a starter and cost about half the price of the same upgrade point by point.</p>';
+  const el=$('offers');el.innerHTML=(RUN.freePick>0?'<div class="onote" style="margin-bottom:8px">Boss reward: take one boost or unit offer free.</div>':'')+'<p class="help">Boosts and unit boosts are cheaper than buying points yourself. Free agents replace a starter and cost about half the price of the same upgrade point by point.</p>';
   RUN.offers.forEach(o=>{
     const d=describeOffer(o,RUN.roster),div=document.createElement('div');div.className='ocard'+(o.sold?' sold':'');
     div.innerHTML='<div class="otop"><span class="tag '+d.cls+'">'+d.tag+'</span><span class="otitle">'+d.title+'</span></div><div class="osub">'+d.sub+'</div>'+cmpRows(d.rows)+'<div class="onote">'+d.note+'</div>';
-    const b=document.createElement('button'),can=RUN.cash>=o.price;
-    b.textContent=o.sold?'SOLD':can?'BUY · '+o.price+' cash':'NEED '+(o.price-RUN.cash)+' MORE · price '+o.price;
+    const b=document.createElement('button'),free=RUN.freePick>0&&(o.type==='boost'||o.type==='group'),pr=free?0:o.price,can=RUN.cash>=pr;
+    b.textContent=o.sold?'SOLD':free?'TAKE FREE (boss reward)':can?'BUY · '+pr+' cash':'NEED '+(pr-RUN.cash)+' MORE · price '+pr;
     b.disabled=o.sold||!can;if(can&&!o.sold)b.className='go';
     b.onclick=()=>{if(buyOffer(RUN,o)){save();renderShop()}};
     div.appendChild(b);el.appendChild(div);
   });
   const rr=$('reroll');rr.textContent='REROLL SHOP ('+RUN.rerolls+' left'+(RUN.fac.scouting?'':' · needs a Scouting facility')+')';rr.disabled=RUN.rerolls<=0;
-  const fe=$('facs');fe.innerHTML='';
-  FACS.forEach(f=>{
-    const l=RUN.fac[f.id],div=document.createElement('div');div.className='fac';
-    div.innerHTML='<div class="row2"><b>'+f.name+'</b><span class="pips">'+'●'.repeat(l)+'○'.repeat(f.max-l)+'</span></div><small>Now: '+f.desc(l)+'</small>'+(l<f.max?'<small>Next level: '+f.desc(l+1)+'</small>':'');
-    const b=document.createElement('button');
-    if(l>=f.max){b.textContent='MAX LEVEL';b.disabled=true}
-    else{const c=f.cost[l+1],can=RUN.cash>=c;b.textContent=can?'UPGRADE · '+c+' cash':'NEED '+(c-RUN.cash)+' MORE · price '+c;b.disabled=!can;if(can)b.className='go';b.onclick=()=>{if(upgradeFac(RUN,f.id)){save();renderShop()}}}
-    div.appendChild(b);fe.appendChild(div);
-  });
+  renderFacs('facs',renderShop);
+  if(modeOf(RUN)==='gauntlet'){
+    const done=RUN.results.length,last=RUN.results.slice(-6).map(r=>'<span class="'+(r.boss?'acc':'ok')+'">'+(r.boss?'B':'W')+'</span>').join(' ');
+    $('schedChips').className='';$('schedChips').innerHTML='<div>Streak <b class="acc">'+(RUN.streak||0)+'</b> · next: game '+(RUN.week+1)+(RUN.gBoss?' (BOSS)':'')+'</div><div class="mute" style="font-size:12px;margin-top:4px">One life. The shop opens every 3 wins and after each boss. '+last+'</div>';
+    const opp=TEAMS.find(t=>t.id===currentOppId(RUN));
+    $('shopNext').textContent='SCOUT '+opp.short+' ('+stageLabel(RUN)+')';
+    $('shopRoster').textContent='EDIT ROSTER (cash '+RUN.cash+', free points '+RUN.tp+')';
+    const lab=$('schedChips').parentNode.querySelector('.lbl');if(lab)lab.textContent='GAUNTLET';
+    RUN.step='shop';return;
+  }
+  {const lab=$('schedChips').parentNode.querySelector('.lbl');if(lab)lab.textContent=modeOf(RUN)==='career'?'SEASON '+RUN.season:'SEASON'}
   const reg=RUN.results.filter(r=>r.stage==='regular');
   const cell=(wk,name,r,isNext,dim)=>'<div class="sg '+(r?(r.y>r.c?'w':'l'):isNext?'next':dim?'dim':'')+'"><span class="wk">'+wk+'</span><span class="nm">'+name+'</span><span class="rs"><b>'+(r?(r.y>r.c?'W ':'L ')+r.y+'-'+r.c:isNext?'NEXT':'')+'</b></span></div>';
   let ch='<div class="sgrid">';
@@ -3135,20 +3390,72 @@ function renderShop(){
 $('reroll').onclick=()=>{if(rerollShop(RUN)){save();renderShop()}};
 $('shopRoster').onclick=()=>{renderRoster();show('roster')};
 $('shopNext').onclick=()=>{buildScout();show('scout')};
+$('shopEnd').onclick=()=>endRun($('shopEnd'));
 
 function showOver(){
-  const f=FINISH[RUN.finish],rec=recordOf(RUN);
-  $('overHead').innerHTML='<h2 class="'+(RUN.finish==='title'?'ok':RUN.finish==='missed'?'bad':'acc')+'">'+f.label.toUpperCase()+'</h2><div style="font-size:16px">Regular season '+rec.w+'-'+rec.l+(rec.t?'-'+rec.t:'')+'</div><div class="mute" style="margin-top:6px">Bonus FP for your next run: <b class="acc">+'+f.fp+'</b></div>';
-  const lines=RUN.results.map((r,i)=>{
-    const t=TEAMS.find(x=>x.id===r.opp);
-    return (r.stage==='regular'?'Wk'+String(i+1).padEnd(2):r.stage==='semi'?'SEMI':'FINL')+' '+t.short.padEnd(11)+(r.y>r.c?'W':r.y<r.c?'L':'T')+' '+r.y+'-'+r.c+'  (+'+r.rev+' cash)';
-  });
-  $('overBox').textContent=lines.join('\n')+'\n\nCash earned: '+RUN.results.reduce((a,r)=>a+r.rev,0)+' · hype '+RUN.hype;
-  const un=(RUN.unlocks||[]);$('overUnlPanel').classList.toggle('hide',!un.length);
+  const m=modeOf(RUN);
+  const un=(RUN.unlocks||[]);
+  if(m==='gauntlet'){
+    const best=META.gbest||0;
+    $('overHead').innerHTML='<h2 class="acc">GAUNTLET OVER</h2><div style="font-size:16px">Streak <b>'+(RUN.streak||0)+'</b>'+((RUN.streak||0)>=best&&RUN.streak?' · new best!':' · best '+best)+'</div><div class="mute" style="margin-top:4px;font-size:12px">'+myName()+' · '+(RUN.results.filter(r=>r.boss&&r.y>r.c).length)+' bosses beaten</div>';
+    $('overBox').textContent=RUN.results.map((r,i)=>{const t=TEAMS.find(x=>x.id===r.opp);return 'G'+String(i+1).padEnd(3)+(r.boss?'BOSS ':'     ')+t.short.padEnd(11)+(r.y>r.c?'W':r.y<r.c?'L':'T')+' '+r.y+'-'+r.c}).join('\n')+'\n\nCash earned: '+RUN.results.reduce((a,r)=>a+r.rev,0);
+  }else{
+    const f=FINISH[RUN.finish],rec=recordOf(RUN);
+    $('overHead').innerHTML='<h2 class="'+(RUN.finish==='title'?'ok':RUN.finish==='missed'?'bad':'acc')+'">'+(m==='career'?'SEASON '+RUN.season+': ':'')+f.label.toUpperCase()+'</h2><div style="font-size:16px">Regular season '+rec.w+'-'+rec.l+(rec.t?'-'+rec.t:'')+'</div><div class="mute" style="margin-top:4px;font-size:12px">'+myName()+(m==='career'?' · '+(META.ctitles||0)+' career titles':'')+'</div>';
+    const lines=RUN.results.map((r,i)=>{
+      const t=TEAMS.find(x=>x.id===r.opp);
+      return (r.stage==='regular'?'Wk'+String(i+1).padEnd(2):r.stage==='semi'?'SEMI':'FINL')+' '+t.short.padEnd(11)+(r.y>r.c?'W':r.y<r.c?'L':'T')+' '+r.y+'-'+r.c+'  (+'+r.rev+' cash)';
+    });
+    let tail='\n\nCash earned: '+RUN.results.reduce((a,r)=>a+r.rev,0)+' · hype '+RUN.hype;
+    if(m==='career'&&RUN.history&&RUN.history.length)tail+='\n\nCAREER\n'+RUN.history.concat([{season:RUN.season,finish:RUN.finish,rec}]).map(h=>'S'+h.season+' '+FINISH[h.finish].label+' ('+h.rec.w+'-'+h.rec.l+')').join('\n');
+    $('overBox').textContent=lines.join('\n')+tail;
+  }
+  $('overUnlPanel').classList.toggle('hide',!un.length);
   $('overUnl').innerHTML=un.map(u=>'<div class="unl"><b>'+u.ach+'</b><br><span class="mute">'+u.text+'</span></div>').join('')+(RUN.styleGain?'<div class="unl"><b>Style XP +'+RUN.styleGain.xp+'</b></div>':'');
+  $('overNew').classList.toggle('hide',m==='career');
+  $('overNew').textContent=m==='gauntlet'?'NEW GAUNTLET':'NEW RUN';
+  $('overOff').classList.toggle('hide',m!=='career');$('overEnd').classList.toggle('hide',m!=='career');
   show('over');
 }
 
+// ---------- career offseason: contracts, facilities ----------
+function renderOffseason(){
+  statusBar('offBar');
+  $('offBar').innerHTML='<div class="statbar"><span>Season '+RUN.season+' done</span><span>Cash <b>'+RUN.cash+'</b></span><span>Discount <b>'+Math.round(discountOf(RUN)*100)+'%</b></span></div>';
+  const ex=RUN.expiring||[],el=$('offList');el.innerHTML='';
+  $('offHelp').textContent=ex.length?'Re-signing costs cash for the points you added, at a discount from the Front Office. Each re-sign costs -'+RESIGN_DECLINE+' on every stat. Anyone you let go is replaced by a rookie (about 50 overall).':'No contracts ended this year.';
+  ex.forEach(k=>{
+    const p=RUN.roster[k],c=resignCost(RUN,p),keep=RUN.dec[k]==='keep';
+    const can=keep||RUN.cash-decisionCost(RUN)>=c;
+    const d=document.createElement('div');d.className='offer';
+    d.innerHTML='<div class="d"><b>#'+p.num+' '+p.name+'</b> <span class="mute">'+SLOT_LABEL[k]+' · overall '+ovr(p)+'</span><small>'+(keep?'Re-signing for '+c+' cash → 3 years, all stats -'+RESIGN_DECLINE:'Let go: a rookie takes the slot. Re-sign '+c+' cash')+'</small></div>';
+    const b=document.createElement('button');b.textContent=keep?'KEEP ✓':'RE-SIGN '+c;b.disabled=!can;if(keep)b.className='go';
+    b.onclick=()=>{RUN.dec[k]=keep?'go':'keep';save();renderOffseason()};
+    d.appendChild(b);el.appendChild(d);
+  });
+  $('offSum').innerHTML='<span class="mute">Re-sign total</span> <b class="acc">'+decisionCost(RUN)+'</b> <span class="mute">· cash after</span> <b>'+(RUN.cash-decisionCost(RUN))+'</b>';
+  $('offAll').innerHTML=Object.keys(RUN.roster).map(k=>{const p=RUN.roster[k];return '<span class="cchip'+(p.contract<=0?' c1':'')+'">'+SLOT_LABEL[k]+' '+Math.max(0,p.contract)+'y</span>'}).join('');
+  renderFacs('offFacs',renderOffseason);
+  RUN.step='offseason';save();
+}
+$('offGo').onclick=()=>{offseasonApply(RUN);careerBuildStart(RUN);save();renderPicks();show('picks')};
+function endRun(b){
+  const m=modeOf(RUN);
+  if(m==='career'){endCareer(b);return}
+  if(S.endArm!==b.id){S.endArm=b.id;b.textContent='TAP AGAIN: END RUN';setTimeout(()=>{S.endArm=null;b.textContent='END RUN'},4000);return}
+  S.endArm=null;b.textContent='END RUN';
+  if(RUN.results.length){
+    RUN.phase='over';RUN.finish=m==='gauntlet'?'gauntlet':'missed';
+    const list=[];awardRun(RUN,list);RUN.unlocks=(RUN.unlocks||[]).concat(list);metaOver();saveMeta();save();showOver();
+  }else{try{localStorage.removeItem(KEYS[m])}catch(e){}RUN=null;refreshMenu();show('menu')}
+}
+function endCareer(b){
+  if(S.endArm!==b.id){S.endArm=b.id;b.textContent='TAP AGAIN: END CAREER AND DELETE SAVE';setTimeout(()=>{S.endArm=null;b.textContent='END CAREER'},4000);return}
+  S.endArm=null;b.textContent='END CAREER';try{localStorage.removeItem(KEYS.career)}catch(e){}RUN=null;refreshMenu();show('menu');
+}
+$('offEnd').onclick=()=>endCareer($('offEnd'));
+$('overOff').onclick=()=>{offseasonStart(RUN);save();renderOffseason();show('offseason')};
+$('overEnd').onclick=()=>endCareer($('overEnd'));
 
 // ---------- event card ----------
 function showEvent(){
@@ -3181,9 +3488,9 @@ function renderPicks(){
   const el=$('pkList');el.innerHTML='';
   ['oc','dc','relic'].forEach(k=>{
     const h=document.createElement('div');h.className='sec';h.textContent=KIND_NAME[k].toUpperCase();el.appendChild(h);
-    const curCost=TIER_COST[pickedPerk(RUN,k).tier];
+    const curCost=perkCost(RUN,k,pickedPerk(RUN,k).id);
     RUN.draft[k].forEach((id,i)=>{
-      const p=perkById(k,id),cost=TIER_COST[p.tier],sel=RUN.picks[k]===i,can=sel||fpLeft()+curCost-cost>=0;
+      const p=perkById(k,id),cost=perkCost(RUN,k,id),sel=RUN.picks[k]===i,can=sel||fpLeft()+curCost-cost>=0;
       const d=document.createElement('div');d.className='pcard'+(sel?' sel':'')+(can?'':' lock');
       d.innerHTML='<span class="tg t'+p.tier+'">'+(cost?cost+' FP':'FREE')+'</span><b>'+p.name+'</b><p>'+p.desc+(can?'':' · not enough FP')+'</p>';
       if(can)d.onclick=()=>{RUN.picks[k]=i;save();renderPicks()};
@@ -3211,7 +3518,7 @@ function chooseLegacy(p){
 }
 $('lgSkip').onclick=()=>{renderRoster();show('roster')};
 
-// ---------- settings and balance harness ----------
+// ---------- settings ----------
 function loadSettingsUI(){
   buildSwatches('swSet');buildFields();bindName('tnSet');$('qlen').value=String(SET.qlen);$('setSpeed').value=SET.speed;$('setHaptics').checked=SET.haptics;$('setSound').checked=SET.sound;$('clearMsg').textContent='';
 }
@@ -3219,36 +3526,16 @@ $('qlen').onchange=()=>{SET.qlen=+$('qlen').value;saveSet()};
 $('setSpeed').onchange=()=>{SET.speed=$('setSpeed').value;saveSet()};
 $('setHaptics').onchange=()=>{SET.haptics=$('setHaptics').checked;saveSet();if(SET.haptics)buzz(60)};
 $('setSound').onchange=()=>{SET.sound=$('setSound').checked;saveSet();syncMute();if(SET.sound)beep(660,0.1)};
-$('btnClearRun').onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}RUN=null;$('clearMsg').textContent='Current run deleted.'};
+[['btnClearRun','season','Regular run'],['btnClearCareer','career','Career'],['btnClearGaunt','gauntlet','Gauntlet']].forEach(([id,m,n])=>{
+  $(id).onclick=()=>{try{localStorage.removeItem(KEYS[m])}catch(e){}if(RUN&&modeOf(RUN)===m)RUN=null;$('clearMsg').textContent=n+' save deleted.'};
+});
 $('btnClearAll').onclick=()=>{
-  try{localStorage.removeItem(KEY);localStorage.removeItem(MKEY)}catch(e){}
+  try{Object.values(KEYS).forEach(k=>localStorage.removeItem(k));localStorage.removeItem(MKEY)}catch(e){}
   RUN=null;META=freshMeta();$('clearMsg').textContent='Run, records, bonus FP and legacy pool cleared.';
 };
 $('setBack').onclick=()=>{refreshMenu();show('menu')};
-$('btnHarness').onclick=()=>{
-  const out=$('harnessOut'),n=40,fin={missed:0,playoffs:0,final:0,title:0};
-  let i=0,wins=0,cash=0;const byTpl={};
-  $('btnHarness').disabled=true;
-  const step=()=>{
-    for(let k=0;k<2&&i<n;k++,i++){
-      const tpl=TEMPLATES[i%4].id,R=simRunHeadless(9000+i,tpl,SET.qlen);
-      fin[R.finish]++;wins+=recordOf(R).w;cash+=R.results.reduce((a,r)=>a+r.rev,0);
-      const t=byTpl[tpl]=byTpl[tpl]||{n:0,reach:0};t.n++;if(R.finish!=='missed')t.reach++;
-    }
-    out.textContent='Simulating... '+i+'/'+n;
-    if(i<n)setTimeout(step,5);
-    else{
-      const pc=v=>Math.round(v/n*100)+'%';
-      out.innerHTML='<b>'+n+' runs</b> (quarters '+SET.qlen+' min)<br>Missed playoffs '+pc(fin.missed)+' · lost in playoffs '+pc(fin.playoffs)+' · lost final '+pc(fin.final)+' · title '+pc(fin.title)+'<br>Average regular-season wins '+(wins/n).toFixed(1)+' · average gate revenue '+Math.round(cash/n)+'<br>Playoff rate by team style: '+TEMPLATES.map(t=>t.name+' '+Math.round((byTpl[t.id].reach/byTpl[t.id].n)*100)+'%').join(' · ');
-      $('btnHarness').disabled=false;
-    }
-  };
-  step();
-};
-
 refreshMenu();show('menu');requestAnimationFrame(frame);
 </script>
-<script>if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})</script>
 </body>
 </html>
 
