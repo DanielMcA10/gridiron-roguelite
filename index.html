@@ -506,6 +506,36 @@ const TYPE_BONUS={
   smashc:{man:-1,c0:0, c2:5, c3:-2,c4:-4},
   slantgo:{man:3,c0:5, c2:0, c3:-3,c4:-4}};
 const MAN_MAP={WRL:{type:'CB',i:0},WRR:{type:'CB',i:1},SLOT:{type:'S',i:1},TE:{type:'LB',i:2},RB:{type:'LB',i:1}};
+// Defence lines up against what the offence actually shows: a flipped formation mirrors the whole defence,
+// and man coverage matches each defender to the receiver nearest his side (so trips draws the defence over).
+const _al={},_mm={};
+const MAN_POOL=[['CB',0],['CB',1],['S',1],['LB',2],['LB',1]];
+function manAssign(flip,form){
+  form=form||'std';if(!flip&&form==='std')return MAN_MAP;
+  const k=(flip?1:0)+form;if(_mm[k])return _mm[k];
+  const sgn=flip?-1:1,home=(t,i)=>sgn*ALIGN.man[t][i][0];
+  const rs=['WRL','WRR','SLOT','TE','RB'].map(l=>({l,x:offStart(l,flip,form)[0]})).sort((a,b)=>Math.abs(b.x)-Math.abs(a.x));
+  const pool=MAN_POOL.slice(),out={};
+  rs.forEach(r=>{let bi=0,bd=1e9;pool.forEach((d,i)=>{const dd=Math.abs(home(d[0],d[1])-r.x);if(dd<bd){bd=dd;bi=i}});out[r.l]={type:pool[bi][0],i:pool[bi][1]};pool.splice(bi,1)});
+  return _mm[k]=out;
+}
+function defAlign(cov,flip,form){
+  form=form||'std';cov=cov||'c4';
+  if(!flip&&form==='std')return ALIGN[cov];
+  const k=cov+(flip?1:0)+form;if(_al[k])return _al[k];
+  const sgn=flip?-1:1,o={};
+  ['LB','S','CB'].forEach(t=>{o[t]=ALIGN[cov][t].map(p=>[p[0]*sgn,p[1]])});
+  if(isManCov(cov)){
+    if(form!=='std'){
+      const mm=manAssign(flip,form);
+      for(const l in mm){const d=mm[l],rx=offStart(l,flip,form)[0];o[d.type][d.i]=[clamp(rx-Math.sign(rx||1)*0.35,-5.6,5.6),o[d.type][d.i][1]]}
+    }
+  }else{
+    const st=(FORMS[form]||{}).strong;
+    if(st){const s=(flip?-1:1)*1.6;['LB','S'].forEach(t=>{o[t]=o[t].map(p=>[clamp(p[0]+s,-5,5),p[1]])})}
+  }
+  return _al[k]=o;
+}
 const MAN_FLIP={WRL:{type:'CB',i:1},WRR:{type:'CB',i:0},SLOT:{type:'S',i:0},TE:{type:'LB',i:0},RB:{type:'LB',i:1}}; // formation flipped: receivers are on the other side
 // where a skill player lines up (a flipped formation mirrors left and right)
 // ---------- OFFENSIVE FORMATIONS ----------
@@ -726,25 +756,39 @@ function resolveRun(P){
     const ch=eng.filter(e=>!e.read&&(e.res==='beaten'||e.res==='free')).map(e=>({e,pur:e.blitz?P.team.lbs[lbIdx].pur:DL[e.dl].pur})).sort((a,b)=>b.pur-a.pur)[0];
     if(ch&&rng()<clamp((ch.pur-RB.speed)/100+0.06,0,0.25)){yards=Math.max(5,yards-Math.round(2+rng()*4));chaseCatch=ch.e}
   }
-  const td=yards>=goal;
+  let td=yards>=goal;
   const endX=clamp(xg+(rng()-0.5)*(gi>=6?1.6:2.4),-4.8,4.8);
 
-  // 6) Tackler: the defender closest to where the carrier ends up
+  // 6) Tackler: only a defender who can actually get there at his own speed. If nobody can, the carrier keeps going.
   let tackler=null;
   if(!td){
-    const al=ALIGN[P.coverage||'c4'];
-    const cands=[];
-    eng.forEach(e=>{
-      const pen=yards>4?(yards-4)*0.8:0; // linemen chase from behind on long gains
-      cands.push({d:Math.hypot(e.fx-endX,Math.max(e.depth,-1)-yards)+pen,t:e.blitz?{type:'LB',i:lbIdx}:{type:'DL',dl:e.dl}});
-    });
-    for(let i=0;i<3;i++)if(lbIdx!==i)cands.push({d:Math.hypot(al.LB[i][0]-endX,al.LB[i][1]-yards),t:{type:'LB',i}});
-    for(let i=0;i<2;i++){
-      cands.push({d:Math.hypot(al.S[i][0]-endX,al.S[i][1]-yards),t:{type:'S',i}});
-      cands.push({d:Math.hypot(al.CB[i][0]-endX,al.CB[i][1]-yards),t:{type:'CB',i}});
+    const al=defAlign(P.coverage||'c4',P.flip,P.form);
+    const spd=p=>3.6+((p||60)-50)/25;
+    const tcar=y=>1.95+(y<=0?0:y<=10?y/6.2:10/6.2+(y-10)/8);
+    const field=yd=>{
+      const tEnd=Math.max(tcar(yd),2.25),cands=[];
+      const add=(x,y,t0,pur,t)=>{
+        const d=Math.hypot(x-endX,y-yd),v=spd(pur),need=d/Math.max(0.2,tEnd-t0);
+        cands.push({d,ok:need<=v*1.1,t});
+      };
+      eng.forEach(e=>{const pen=yd>4?(yd-4)*0.8:0;add(e.fx,Math.max(e.depth,-1),1.8,e.blitz?P.team.lbs[lbIdx].pur:DL[e.dl].pur,e.blitz?{type:'LB',i:lbIdx}:{type:'DL',dl:e.dl});cands[cands.length-1].d+=pen});
+      for(let i=0;i<3;i++)if(lbIdx!==i)add(al.LB[i][0],al.LB[i][1],1.15,P.team.lbs[i].pur,{type:'LB',i});
+      for(let i=0;i<2;i++){
+        add(al.S[i][0],al.S[i][1],1.35,P.team.defs[S_ID[i]].cov,{type:'S',i});
+        add(al.CB[i][0],al.CB[i][1],1.35,P.team.defs[CB_ID[i]].cov,{type:'CB',i});
+      }
+      return cands;
+    };
+    let cands=field(yards);
+    const LONG=yards>=7; // short gains: the nearest man makes the stop as before
+    if(!LONG)cands.forEach(c=>{c.ok=true});
+    while(!cands.some(c=>c.ok)&&yards<goal){yards++;cands=field(yards)}
+    if(yards>=goal)td=true;
+    else{
+      const ok=cands.filter(c=>c.ok);
+      tackler=ok.reduce((a,b)=>b.d<a.d?b:a).t;
+      if(chaseCatch&&cands.some(c=>c.ok&&c.t.type===(chaseCatch.blitz?'LB':'DL')&&(chaseCatch.blitz?c.t.i===lbIdx:c.t.dl===chaseCatch.dl)))tackler=chaseCatch.blitz?{type:'LB',i:lbIdx}:{type:'DL',dl:chaseCatch.dl};
     }
-    tackler=cands.reduce((a,b)=>b.d<a.d?b:a).t;
-    if(chaseCatch)tackler=chaseCatch.blitz?{type:'LB',i:lbIdx}:{type:'DL',dl:chaseCatch.dl};
   }
 
   return {
@@ -854,10 +898,10 @@ function resolvePass(P){
     const ux=pts0[pts0.length-1][0];
     const pts=pts0.map(q=>[q[0]*(P.flip?-1:1),q[1]]);
     const catchPt=pts[pts.length-1];
-    const def=isManCov(cov)?(P.flip?MAN_FLIP:MAN_MAP)[label]:zoneOwner(cov,catchPt[0],catchPt[1]);
+    const def=isManCov(cov)?manAssign(P.flip,P.form)[label]:zoneOwner(cov,P.flip?-catchPt[0]:catchPt[0],catchPt[1]);
     const dId=defId(def);
     const deepT=['go','corner','hail','seam','smashc','slantgo'].includes(rtype),quickT=['quick','flat','cross','hitch','curl'].includes(rtype);
-    let sep=1.6*(P.fam||0)-2.6*(P.readLvl||0)+REC[label].rte-DEFS[dId].cov+REC_EDGE+TYPE_BONUS[rtype][cov]+n3()*22+mv(OM,'passSep')+mv(DM,'passSep')+(deepT?mv(OM,'deepSep')+mv(DM,'deepSep'):0)+(quickT?mv(OM,'quickSep'):0)+(isManCov(cov)?mv(DM,'manSep'):mv(DM,'zoneSep'));
+    let sep=1.6*(P.fam||0)-2.6*(P.readLvl||0)-1.0*((P.fatPen&&P.fatPen[label])||0)+REC[label].rte-DEFS[dId].cov+REC_EDGE+TYPE_BONUS[rtype][cov]+n3()*22+mv(OM,'passSep')+mv(DM,'passSep')+(deepT?mv(OM,'deepSep')+mv(DM,'deepSep'):0)+(quickT?mv(OM,'quickSep'):0)+(isManCov(cov)?mv(DM,'manSep'):mv(DM,'zoneSep'));
     sep+=(FP.pass||0)+(quickT?(FP.quick||0):0)+(deepT?(FP.deep||0):0)+(FP.strong?(ux>0?FP.strong:-FP.strong)*clamp(Math.abs(ux)/3,0.3,1):0);
     {const hxp=P.hx||0,w=clamp(Math.abs(catchPt[0])/4.5,0,1);sep-=6*shortFrac(hxp,catchPt[0])*w;if(Math.sign(catchPt[0])===-Math.sign(hxp))sep+=1.5*Math.abs(hxp)/HASH*w} // boundary squeezes routes, field side has room
     if(def.type==='LB'&&lbIdx===def.i)sep+=10;           // blitzer left his man/zone
@@ -1107,11 +1151,17 @@ function cpuDefense(G,rng,tend){
   else{const w=tend.zoneW||[0.25,0.4,0.35],u=rng();cov=u<w[0]?'c2':u<w[0]+w[1]?'c3':'c4'}
   return {callIndex:ci,blitz:b?bg:null,coverage:cov};
 }
-const teamFor=(T,off,M)=>teamFromRosters(T[off],T[other(off)],M&&M[off]&&M[off].off,M&&M[other(off)]&&M[other(off)].def);
+// fatigue: players who are used play after play lose points on every attribute (pen = {slot: points})
+function tiredRoster(R,pen){
+  if(!pen)return R;const o=Object.assign({},R);
+  for(const k in pen){if(!pen[k]||!R[k])continue;const at={};for(const a in R[k].attrs)at[a]=Math.max(20,R[k].attrs[a]-pen[k]);o[k]=Object.assign({},R[k],{attrs:at})}
+  return o;
+}
+const teamFor=(T,off,M,pen)=>teamFromRosters(tiredRoster(T[off],pen),T[other(off)],M&&M[off]&&M[off].off,M&&M[other(off)]&&M[other(off)].def);
 function buildPlay(G,T,seed,off,dec,defDec,M){
   const goal=100-G.ballOn;
   if(dec.type==='run'||dec.type==='pass'){
-    const base={seed,hx:G.hx||0,flip:!!dec.flip,form:dec.form||'std',toGo:G.toGo,fam:dec.fam||0,readLvl:dec.readLvl||0,team:teamFor(T,off,M),goal,blitz:defDec.blitz,coverage:defDec.coverage,callIndex:defDec.callIndex};
+    const base={seed,hx:G.hx||0,flip:!!dec.flip,form:dec.form||'std',toGo:G.toGo,fam:dec.fam||0,readLvl:dec.readLvl||0,fatPen:dec.fat||null,team:teamFor(T,off,M,dec.fat),goal,blitz:defDec.blitz,coverage:defDec.coverage,callIndex:defDec.callIndex};
     return dec.type==='run'?resolveRun(Object.assign(base,{play:dec.play,gap:dec.gap})):resolvePass(Object.assign(base,{play:dec.pass,primary:dec.primary}));
   }
   return Object.assign(resolveSpecial({seed,type:dec.type,ballOn:G.ballOn,goal,kick:mv(M&&M[off]&&M[off].off,'kick')}),{hx:G.hx||0});
@@ -2037,7 +2087,7 @@ function logLines(L){return L.kind==='pass'?passLog(L):L.kind==='special'?specia
 // ============================================================
 const T_SNAP=0.7,T_CON=1.0,T_RES=1.8;
 const DPAL={LB:'lb',S:'s',CB:'cb'};
-const preDef=(L,type,i)=>ALIGN[L.coverage][type][i];
+const preDef=(L,type,i)=>defAlign(L.coverage,L.flip,L.form)[type][i];
 function fixKeys(A){A.forEach(a=>{for(let i=1;i<a.keys.length;i++)if(a.keys[i].t<=a.keys[i-1].t)a.keys[i].t=a.keys[i-1].t+0.02})}
 function at(a,t){
   const k=a.keys;
@@ -2213,19 +2263,18 @@ function buildRunTimeline(L){
     let v=3.6+((p||60)-50)/25,k=keys[keys.length-1],x=k.x,y=k.y,t=Math.max(tStart,k.t);
     if(t>k.t+0.001)keys.push({t,x,y,pose:k.pose});
     const tStop=tackle?Math.max(tEnd,t+0.3):tEnd+0.35;
-    const t0=t,ex=rbEnd.x+0.3,ey=rbEnd.y+0.25;
+    const t0=t,x0=x,y0=y,ex=rbEnd.x+0.3,ey=rbEnd.y+0.25;
     if(tackle)v=Math.max(v,Math.hypot(ex-x,ey-y)/Math.max(0.3,tStop-t)*1.15);
     const n=Math.max(1,Math.ceil((tStop-t)/0.1)),dt=(tStop-t)/n;
     for(let i=1;i<=n;i++){
       t=i===n?tStop:t0+dt*i;
+      if(tackle){ // take the angle: run straight to where the carrier will be brought down, at constant speed
+        const w=(t-t0)/(tStop-t0);
+        keys.push({t,x:x0+(ex-x0)*w,y:y0+(ey-y0)*w,pose:i===n?'stance':'run'});continue;
+      }
       const c=at({keys:car},t),dx=c.x-x,dy=c.y-y,d=Math.hypot(dx,dy);
       let pose='run';
       if(d>0.55){const m=Math.min(d-0.5,v*dt);x+=dx/d*m;y+=dy/d*m}else pose='stance';
-      if(tackle){ // ease onto the carrier's end spot over the last stretch so there is never a jump
-        const w=clamp((t-t0)/(tStop-t0),0,1),k=w*w*w;
-        x+=(ex-x)*k*0.5*dt/Math.max(dt,(tStop-t)+dt);y+=(ey-y)*k*0.5*dt/Math.max(dt,(tStop-t)+dt);
-        if(i===n){pose='stance'}
-      }
       keys.push({t,x,y,pose});
     }
   };
@@ -2360,7 +2409,7 @@ function buildPassTimeline(L){
     mk('def','def',DL_ID[i],keys,'dl');
   });
   // ---- second level
-  const al=ALIGN[L.coverage],man=isManCov(L.coverage);
+  const al=defAlign(L.coverage,L.flip,L.form),man=isManCov(L.coverage);
   const bE=L.eng.find(e=>e.blitz);
   const catchPt=tgt?tgt.catchPt:null;
   const isOwner=(type,i)=>tgt&&tgt.def.type===type&&tgt.def.i===i;
@@ -2389,7 +2438,7 @@ function buildPassTimeline(L){
             keys.push({t:T0+r.t*acc/tot+0.12,x:full[k][0]+(full[k][0]>=0?-0.4:0.4),y:full[k][1]-lag,pose:'run'});
           }
         }else if(!man){ // zone: drop to a spot
-          const spot=zoneSpot(L.coverage,type,i);
+          const sp0=zoneSpot(L.coverage,type,i),spot=[sp0[0]*(L.flip?-1:1)+((FORMS[L.form||'std']||{}).strong&&type!=='CB'?(L.flip?-1.6:1.6):0),sp0[1]];
           keys.push({t:T0+1.3,x:spot[0],y:spot[1],pose:'run'});
           keys.push({t:T0+1.5,x:spot[0],y:spot[1],pose:'stand'});
         }else if(type==='S'&&i===0&&L.coverage==='man'){ // free safety, deep help
@@ -2456,7 +2505,9 @@ function statOf(a){
   if(a.num==null||!S.T)return null;
   const side=a.type==='off'?S.offSide:S.defSide,R=S.T[side];if(!R)return null;
   const p=Object.values(R).find(q=>q.num===a.num);
-  return p?ovr(p):null;
+  if(!p)return null;
+  const f=a.type==='off'&&S.offSide==='you'&&S.fat?Math.round(Math.min(16,Math.max(0,(S.fat[a.label]||0)-1.5)*3)):0;
+  return ovr(p)-f;
 }
 function drawSprite(sx,sy,a,pose,fr,label,stat){
   const num=a.num,pal=palFor(sideColor(a),a.pal),sc=2,w=10*sc;
@@ -2974,17 +3025,21 @@ $('sGo').onclick=()=>startGame();
 // ---------- game ----------
 // ---- play familiarity (stars, reset each run) and the opponent's read on your calls (per game) ----
 const famStars=id=>{const n=(RUN&&RUN.fam&&RUN.fam[id])||0,k=filmScale(RUN),T=STAR_AT.map(x=>Math.round(x*k));return n>=T[2]?3:n>=T[1]?2:n>=T[0]?1:0};
+const FAT_SLOTS=['WRL','WRR','SLOT','TE','RB'];
+const fatPen=k=>Math.min(16,Math.max(0,((S.fat&&S.fat[k])||0)-1.5)*3);
+const fatLvl=k=>{const f=(S.fat&&S.fat[k])||0;return f>=3.5?2:f>=2?1:0};
+const fatDots=k=>{const l=fatLvl(k);return l?'<span class="rdot l'+l+'">'+(l>1?'●●':'●')+'</span>':''};
 const readLvl=id=>{const r=(S.read&&S.read[id])||0;return r>=2.4?2:r>=1.5?1:0};
 const badge=(id,html)=>{const st=famStars(id),rl=readLvl(id);return html+(st?'<span class="st">'+'★'.repeat(st)+'</span>':'')+(rl?'<span class="rdot l'+rl+'">'+(rl>1?'●●':'●')+'</span>':'')};
 function refreshRead(){
   const hot=Object.keys(S.read||{}).filter(id=>readLvl(id)>0).map(id=>(PLAYS[id]||PASSES[id]).name);
   const stars=[...PLAY_LIST,...PASS_LIST].filter(id=>famStars(id)>0).map(id=>(PLAYS[id]||PASSES[id]).name+' '+'★'.repeat(famStars(id)));
-  $('gRead').innerHTML='<span class="lbl">THEY ARE READING</span><div class="kp">'+(hot.length?hot.join(', ')+' (they counter these: vary your calls)':'Nothing yet. Repeating a play gets it countered.')+'</div><span class="lbl" style="margin-top:8px">YOUR STARRED PLAYS</span><div class="kp">'+(stars.length?stars.join(' · '):'None yet. Successful calls earn stars that make a play stronger this run.')+'</div><div class="mute" style="font-size:11px;margin-top:6px">★ = familiarity (successful gains). Dots on a button = the defense has seen it.</div>';
+  $('gRead').innerHTML='<span class="lbl">THEY ARE READING</span><div class="kp">'+(hot.length?hot.join(', ')+' (they counter these: vary your calls)':'Nothing yet. Repeating a play gets it countered.')+'</div><span class="lbl" style="margin-top:8px">YOUR STARRED PLAYS</span><div class="kp">'+(stars.length?stars.join(' · '):'None yet. Successful calls earn stars that make a play stronger this run.')+'</div><div class="mute" style="font-size:11px;margin-top:6px">★ = familiarity (successful gains). Dots on a play button = the defense has seen it.</div><span class="lbl" style="margin-top:8px">TIRED PLAYERS</span><div class="kp">'+(FAT_SLOTS.filter(k=>fatLvl(k)>0).map(k=>k+' (-'+Math.round(fatPen(k))+' on every stat)').join(', ')||'Nobody yet. A player used play after play wears down; rest him a couple of plays to recover.')+'</div><div class="mute" style="font-size:11px;margin-top:6px">Dots on RUN or a receiver = tired. Halftime restores some energy.</div>';
 }
 function startGame(){
   const season=RUN.phase==='season';
   const team=TEAMS.find(t=>t.id===(season?currentOppId(RUN):OPPID));
-  S.gameType=season?'season':'test';S.resolved=false;S.gm={maxTrail:0,longPass:0,twoPt:false,bigComp:0,goalTD:0};S.read={};S.readForm={};S.formOpen=false;
+  S.gameType=season?'season':'test';S.resolved=false;S.gm={maxTrail:0,longPass:0,twoPt:false,bigComp:0,goalTD:0};S.read={};S.readForm={};S.fat={};S.fatQ=1;S.formOpen=false;
   S.opp={team,roster:genTeamRoster(team,season?oppBuff(RUN):0),tend:team.tend};
   S.T={you:RUN.roster,cpu:S.opp.roster};
   S.M={you:computeMods(RUN),cpu:null};
@@ -3011,7 +3066,7 @@ function prepareGame(){
     S.hurry=pat?false:S.hurryOn;
     if(dec.type==='run'||dec.type==='pass')dec.form=pat?'std':S.form;
     S.formOpen=S.formOpen&&!pat;
-    if(!pat&&(dec.type==='run'||dec.type==='pass')){const pid=dec.type==='run'?dec.play:dec.pass;dec.fam=famStars(pid);dec.readLvl=readLvl(pid)}
+    if(!pat&&(dec.type==='run'||dec.type==='pass')){const pid=dec.type==='run'?dec.play:dec.pass;dec.fam=famStars(pid);dec.readLvl=readLvl(pid);dec.fat={};FAT_SLOTS.forEach(k=>{dec.fat[k]=fatPen(k)})}
   }else{
     S.formOpen=false;$('formSheet').classList.add('hide');
     defDec={callIndex:S.call,blitz:S.blitz,coverage:S.cov};
@@ -3106,7 +3161,7 @@ function buildGapButtons(){
   if(S.kind==='run'&&!runList().includes(S.play)){S.play=runList()[0];const gl0=PLAYS[S.play].gaps;S.gap=gl0[Math.floor(gl0.length/2)]}
   $('formSheet').classList.toggle('hide',!S.formOpen);
   const kb=$('kinds');kb.innerHTML='';
-  const rb=btn(kb,'RUN',S.kind==='run',()=>{S.kind='run';buildGapButtons();prepare(true)},'font-size:13px');
+  const rb=btn(kb,'RUN'+fatDots('RB'),S.kind==='run',()=>{S.kind='run';buildGapButtons();prepare(true)},'font-size:13px');
   if(!runList().length)rb.disabled=true;
   btn(kb,'PASS',S.kind==='pass',()=>{S.kind='pass';buildGapButtons();prepare(true)},'font-size:13px');
   btn(kb,S.G.pending?'KICK XP':'KICK',S.kind==='special',()=>{S.kind='special';buildGapButtons();prepare(true)},'font-size:12px');
@@ -3142,7 +3197,7 @@ function buildGapButtons(){
   const labs=['AUTO'].concat(pc.launch?[]:REC_LABELS.filter(l=>pc.routes[l]));
   if(S.primary&&!labs.includes(S.primary))S.primary=null;
   pr.style.gridTemplateColumns='repeat('+labs.length+',1fr)';
-  labs.forEach(l=>btn(pr,l==='AUTO'?'AUTO':'#'+NUM[l]+' '+l,(l==='AUTO'&&!S.primary)||l===S.primary,()=>{S.primary=l==='AUTO'?null:l;buildGapButtons();prepare(true)},'font-size:10px'));
+  labs.forEach(l=>btn(pr,l==='AUTO'?'AUTO':'#'+NUM[l]+' '+l+(l==='AUTO'?'':fatDots(l)),(l==='AUTO'&&!S.primary)||l===S.primary,()=>{S.primary=l==='AUTO'?null:l;buildGapButtons();prepare(true)},'font-size:10px'));
   const sp=$('specials');sp.innerHTML='';
   const bo=S.G?S.G.ballOn:50,dist=100-bo+17;
   const opts=S.G.pending?[['xp','EXTRA POINT · 94%']]:[['punt','PUNT'],['fg','FG '+dist+'<br>'+Math.round(fgProb(dist)*100)+'%'],['kneel','KNEEL'],['spike','SPIKE']];
@@ -3178,6 +3233,9 @@ function onPlayLogged(){
   if(offSide==='you'&&!wasPat&&(Lp.kind==='run'||Lp.kind==='pass')&&!Lp.pat){
     const pid=Lp.play.id,before=toGoBefore;
     for(const k in S.read)S.read[k]*=0.75;
+    {const tl=Lp.kind==='run'?'RB':Lp.target;
+     if(G.q!==S.fatQ){if(G.q===3)FAT_SLOTS.forEach(k=>{S.fat[k]=Math.max(0,(S.fat[k]||0)-2)});S.fatQ=G.q}
+     FAT_SLOTS.forEach(k=>{S.fat[k]=k===tl?(S.fat[k]||0)+1:Math.max(0,(S.fat[k]||0)-0.5)})}
     const same=!S.readForm[pid]||S.readForm[pid]===(Lp.form||'std');
     S.readForm[pid]=Lp.form||'std';
     S.read[pid]=(S.read[pid]||0)+(same?1:0.5); // the same play from a new formation is half as easy to read
