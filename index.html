@@ -2346,25 +2346,47 @@ function buildRunTimeline(L){
     mk('off','wr',l,[{t:0,x:s[0],y:s[1],pose:'stance'},{t:T_SNAP,x:s[0],y:s[1],pose:'stance'},
       {t:T_CON,x:s[0]*0.93,y:0.9,pose:'run'},{t:T_RES,x:s[0]*0.93,y:1.5,pose:'stance'}],'blk');
   });
-  // OL
-  for(let j=0;j<5;j++){
-    const x0=OL_X[j];
+  // OL: each run play has its own blocking pattern
+  const pid=L.play.id,sgn=Math.sign(xg||1);
+  const baseKeys=(j,x0)=>{
     const keys=[{t:0,x:x0,y:-0.7,pose:'stance'},{t:T_SNAP,x:x0,y:-0.7,pose:'stance'}];
     const e=L.eng.find(e=>e.ol===j||e.dbl===j);
+    if(isDraw)keys.push({t:T_SNAP+0.3,x:x0,y:-1.15,pose:'stance'}); // draw: sets back like pass protection first
     if(e){
-      const dbl=e.dbl===j;
-      const off=dbl?(x0<e.cx?-0.65:0.65):0;
-      keys.push({t:T_CON,x:e.cx+off,y:-0.05,pose:'stance'});
+      const dbl=e.dbl===j,off=dbl?(x0<e.cx?-0.65:0.65):0;
+      keys.push({t:isDraw?T_CON+0.25:T_CON,x:e.cx+off,y:-0.05,pose:'stance'});
       if(e.res==='drive')keys.push({t:T_RES,x:e.fx+off,y:e.depth-0.5,pose:'stance'});
       else if(e.res==='hold')keys.push({t:T_RES,x:e.cx+off+e.dir*(dbl?0:0.1),y:-0.05,pose:'stance'});
       else keys.push({t:T_RES,x:e.cx+off-e.dir*(dbl?0.2:0.6),y:-0.35,pose:'stand'});
-    }else if(L.lead===j){
-      keys.push({t:T_CON,x:x0+(xg-x0)*0.5,y:-1.0,pose:'run'});
-      keys.push({t:T_RES,x:xg-Math.sign(xg||1)*0.5,y:0.9,pose:'stance'});
     }else{
       keys.push({t:T_CON,x:x0,y:0.5,pose:'run'});
       keys.push({t:T_RES,x:x0+(xg-x0)*0.15,y:2.4,pose:'stand'});
     }
+    return keys;
+  };
+  const pullKeys=(x0)=>{
+    const k=[{t:0,x:x0,y:-0.7,pose:'stance'},{t:T_SNAP,x:x0,y:-0.7,pose:'stance'}];
+    if(pid==='power'){ // backside guard pulls along the line and leads through the hole
+      k.push({t:T_SNAP+0.25,x:x0+(xg-x0)*0.4,y:-1.1,pose:'run'},{t:T_CON,x:xg-sgn*0.55,y:-0.4,pose:'run'},{t:T_RES,x:xg-sgn*0.45,y:1.2,pose:'stance'});
+    }else if(pid==='counter'){ // deeper pull behind the centre, then up outside the hole
+      k.push({t:T_SNAP+0.3,x:x0*0.4,y:-1.7,pose:'run'},{t:T_CON+0.1,x:xg-sgn*0.7,y:-0.7,pose:'run'},{t:T_RES,x:xg-sgn*0.5,y:1.1,pose:'stance'});
+    }else if(pid==='trap'){ // guard pulls across and traps the lineman left unblocked at the gap
+      k.push({t:T_SNAP+0.25,x:x0+(xg-x0)*0.5,y:-1.0,pose:'run'},{t:T_CON,x:xg+sgn*0.75,y:0.0,pose:'stance'},{t:T_RES,x:xg+sgn*0.95,y:0.5,pose:'stance'});
+    }else{ // sweep / toss: pulls wide and turns up outside
+      k.push({t:T_SNAP+0.15,x:x0+(xg-x0)*0.3,y:-1.0,pose:'run'},{t:T_CON,x:xg*0.8,y:-1.2,pose:'run'},{t:T_RES,x:xg+sgn*0.3,y:1.8,pose:'run'});
+    }
+    return k;
+  };
+  const pullers=['power','counter','trap','sweep','toss'].includes(pid)&&L.lead!=null&&!isQB?[sgn>=0?1:3]:[];
+  if(pullers.length&&L.lead===pullers[0])pullers.length=0;
+  const swapJ=pullers.length?L.lead:null; // the spare lineman takes over the guard's block
+  for(let j=0;j<5;j++){
+    const x0=OL_X[j];
+    let keys;
+    if(pullers.length&&j===pullers[0])keys=pullKeys(x0);
+    else if(swapJ===j)keys=baseKeys(pullers[0],x0).map((q,i)=>i<2?{...q,x:x0}:q);
+    else if(L.lead===j&&!pullers.length)keys=pullKeys(x0);
+    else keys=baseKeys(j,x0);
     mk('off','off',OL_ID[j],keys,'ol');
   }
   // defenders pursue the carrier after the play develops: speed comes from their pursuit rating
@@ -2783,11 +2805,24 @@ function draw(){
   // pre-snap overlays (offense mode): run arrow / pass route diagram
   if(t<T_SNAP&&S.mode==='off'){
     if(L.kind==='run'){
-      const gx=GAPS[L.gap0].x;
-      const cs=PLAYS[L.play.id].carrier==='QB'?offStart('QB',false,L.form):offStart('RB',L.flip,L.form),x1=X(cs[0]),y1=Y(cs[1])-30,x2=X(gx),y2=Y(0.1)+4;
-      ctx.strokeStyle='#f5c518';ctx.lineWidth=3;ctx.setLineDash([6,5]);
-      ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(x1,y2+40,x2,y2);ctx.stroke();ctx.setLineDash([]);
-      ctx.fillStyle='#f5c518';ctx.beginPath();ctx.moveTo(x2,y2-6);ctx.lineTo(x2-8,y2+8);ctx.lineTo(x2+8,y2+8);ctx.fill();
+      const gx=GAPS[L.gap0].x,pid0=L.play.id,sg=Math.sign(gx||1);
+      const cs=PLAYS[pid0].carrier==='QB'?offStart('QB',false,L.form):offStart('RB',L.flip,L.form);
+      // the planned path, ending just behind the line so it never runs into the linemen
+      let P=[[cs[0],cs[1]]];
+      if(pid0==='sweep'||pid0==='toss')P.push([gx*0.45,-3.4],[gx*0.85,-1.8],[gx,-0.9]);
+      else if(pid0==='counter')P.push([-sg*1.1,-3.9],[gx*0.7,-2.2],[gx,-0.9]);
+      else P.push([gx*0.55,-2.3],[gx,-0.9]);
+      const pp=P.map(q=>[X(q[0]),Y(q[1])-6]);
+      ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=5;ctx.lineCap='round';ctx.lineJoin='round';
+      const trace=()=>{ctx.beginPath();ctx.moveTo(pp[0][0],pp[0][1]);
+        for(let i=1;i<pp.length-1;i++){const mx=(pp[i][0]+pp[i+1][0])/2,my=(pp[i][1]+pp[i+1][1])/2;ctx.quadraticCurveTo(pp[i][0],pp[i][1],i===pp.length-2?pp[i+1][0]:mx,i===pp.length-2?pp[i+1][1]:my)}
+        if(pp.length===2)ctx.lineTo(pp[1][0],pp[1][1])};
+      ctx.setLineDash([]);trace();ctx.stroke();
+      ctx.strokeStyle='#FFB400';ctx.lineWidth=3;ctx.setLineDash([7,6]);trace();ctx.stroke();ctx.setLineDash([]);
+      const e=pp[pp.length-1],pv=pp[pp.length-2],an=Math.atan2(e[1]-pv[1],e[0]-pv[0]);
+      ctx.fillStyle='#FFB400';ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;ctx.beginPath();
+      ctx.moveTo(e[0]+Math.cos(an)*9,e[1]+Math.sin(an)*9);
+      ctx.lineTo(e[0]+Math.cos(an+2.5)*9,e[1]+Math.sin(an+2.5)*9);ctx.lineTo(e[0]+Math.cos(an-2.5)*9,e[1]+Math.sin(an-2.5)*9);ctx.closePath();ctx.stroke();ctx.fill();
     }else if(L.kind==='pass'){
       L.routes.forEach(r=>{
         const first=L.order[0]===r.label;
@@ -2848,7 +2883,7 @@ function draw(){
       const ang=Math.atan2(pb.y-pa.y,pb.x-pa.x);
       if(kick)drawBall(c.x,c.y,(t-ar.t0)*13,null,1.1);
       else drawBall(c.x,c.y,ang,(t-ar.t0)*34,1.15);
-    }else if(!holder){
+    }else if(!holder&&t>=T_SNAP){
       const bx=X(p.x),by=Y(p.y)+3;
       ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(bx,by+3,7,2.4,0,0,6.283);ctx.fill();
       drawBall(bx,by-1,0,null,1);
