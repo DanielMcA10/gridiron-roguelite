@@ -14,7 +14,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 ui-monospace,
 body.ingame .hud{padding-right:42px}
 h1{font:12px 'Press Start 2P',ui-monospace,monospace;margin:0 0 10px;color:var(--acc);letter-spacing:.5px}
 h2{font:11px 'Press Start 2P',ui-monospace,monospace;margin:0 0 8px;color:var(--ink);line-height:1.5}
-canvas{width:100%;display:block;border:3px solid #000;border-radius:4px;background:#2b6b34}
+canvas{width:80%;margin:0 auto;display:block;border:3px solid #000;border-radius:4px;background:#2b6b34}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}
 .lbl{font:9px 'Press Start 2P',ui-monospace,monospace;color:var(--mute);margin-bottom:8px;display:block;line-height:1.5}
 .gaps{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
@@ -207,6 +207,37 @@ body.ingame .topbtns{top:-8px}
 body.mod #ttl{padding-right:100px}
 .seg{display:flex;gap:8px}
 body.mod button.sw{border-radius:50%;padding:0;min-height:0;width:40px;height:40px}.seg button{flex:1}
+
+/* ===== themed screens: replace remaining dark surfaces and pixel fonts ===== */
+body.t-light{--m-sub:#F1ECDD}body.t-dark{--m-sub:#1B2745}
+body.mod .offer,body.mod .ocard,body.mod .fac,body.mod .pcard,body.mod .chip,body.mod .sg,body.mod .cchips span,body.mod .ubadge{background:var(--m-sub);border:1.5px solid var(--m-line);border-radius:12px;color:var(--m-ink)}
+body.mod .sg{border-left-width:5px;padding:7px 9px}
+body.mod .sg.next{background:var(--m-sub);border-color:var(--m-acc);border-left-color:var(--m-acc)}
+body.mod .sg .wk,body.mod .sg .nm{color:var(--m-ink)}
+body.mod .sg .wk{color:var(--m-mute)}
+body.mod .pcard.sel{background:var(--m-sub);border-color:var(--m-acc);box-shadow:0 0 0 2px var(--m-acc)}
+body.mod .otitle,body.mod .ocard b,body.mod .offer b,body.mod .fac b,body.mod .pcard b{color:var(--m-ink)}
+body.mod .ocard small,body.mod .offer small,body.mod .fac small,body.mod .osub,body.mod .onote,body.mod .help,body.mod .cmp .h,body.mod .cmp .arr{color:var(--m-mute)}
+body.mod .cmp,body.mod .cmp span{color:var(--m-ink)}
+body.mod .cmp .up{color:var(--m-ok)}body.mod .cmp .dn{color:var(--m-bad)}
+body.mod .tag,body.mod .pcard .tg{font:700 11px/1 'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;border-radius:99px;color:#fff}
+body.mod .sec,body.mod .sdiv,body.mod .coll{font:700 11px 'DM Sans',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--m-mute)}
+body.mod .resbanner{font:800 28px/1.1 'Fraunces',Georgia,serif}
+body.mod .score b{font:800 36px 'Fraunces',Georgia,serif}
+body.mod .fpbar b{font:800 18px 'Fraunces',Georgia,serif;color:var(--m-acc)}
+body.mod .mode h3{color:var(--m-ink)}
+body.t-dark.mod .mode h3{color:var(--m-acc)}
+body.mod .ctag,body.mod .unl b,body.mod .staff .k,body.mod .pips,body.mod .rrow .rn{color:var(--m-acc)}
+body.mod .arow2.done b{color:var(--m-ok)}
+body.mod #scr-scout .lbl,body.mod #scoutBody .lbl{color:var(--m-acc)}
+body.mod #scr-scout th,body.mod #scoutBody th{color:var(--m-ink);font-weight:700}
+body.mod #scr-scout .kp b,body.mod #scoutBody .kp b{color:var(--m-acc)}
+body.mod #scr-scout .kp,body.mod #scoutBody .kp{border-bottom:1px solid var(--m-line);color:var(--m-ink)}
+body.mod #scoutBody table td:first-child,body.mod #scr-scout table td:first-child,body.mod #oppHead b,body.mod #gHead b{color:var(--m-ink)}
+body.mod .tname{background:var(--m-btn);color:var(--m-ink);border:1.5px solid var(--m-line);border-radius:12px}
+body.mod .bar2{background:var(--m-sub);border:1px solid var(--m-line)}
+body.mod .stats td.l{color:var(--m-mute)}
+body.mod .rev td,body.mod .rrow,body.mod .orow,body.mod .arow2,body.mod .unl,body.mod .staff{color:var(--m-ink)}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b1a0f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
