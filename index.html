@@ -14,7 +14,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 ui-monospace,
 body.ingame .hud{padding-right:96px}
 h1{font:12px 'Press Start 2P',ui-monospace,monospace;margin:0 0 10px;color:var(--acc);letter-spacing:.5px}
 h2{font:11px 'Press Start 2P',ui-monospace,monospace;margin:0 0 8px;color:var(--ink);line-height:1.5}
-canvas{width:80%;margin:0 auto;display:block;border:3px solid #000;border-radius:4px;background:#2b6b34}
+canvas{width:90%;margin:0 auto;display:block;border:3px solid #000;border-radius:4px;background:#2b6b34}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;margin-top:10px}
 .lbl{font:9px 'Press Start 2P',ui-monospace,monospace;color:var(--mute);margin-bottom:8px;display:block;line-height:1.5}
 .gaps{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
@@ -277,6 +277,9 @@ body.mod .hsit{color:var(--m-ink);overflow:hidden;text-overflow:ellipsis;white-s
 body.mod .hcards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 body.mod .hcards .hs{max-width:none;justify-content:space-between;align-items:center;padding:6px 12px;border-radius:12px;min-height:40px;font:700 12px 'DM Sans',sans-serif;letter-spacing:.04em;text-transform:uppercase}
 body.mod .hcards .hs .hsc{font:800 24px/1 'Fraunces',Georgia,serif;letter-spacing:0}
+body.mod canvas{margin-bottom:10px}
+body.mod #snapRow button{min-height:36px;font-size:12px}
+body.mod #snap{font-size:14px}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b1a0f"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"></head>
 <body>
@@ -389,7 +392,7 @@ body.mod .hcards .hs .hsc{font:800 24px/1 'Fraunces',Georgia,serif;letter-spacin
 <!-- GAME -->
 <section id="scr-game" class="screen hide">
   <div id="hud" class="hud"></div>
-  <canvas id="cv" width="480" height="560"></canvas>
+  <canvas id="cv" width="480" height="510"></canvas>
   <div class="row" id="snapRow"><button id="snap">SNAP</button><button id="skip">SKIP</button><button id="spdB" class="tog">NORMAL</button><button id="statB" class="tog">STATS</button></div>
   <input type="checkbox" id="slow" hidden><input type="checkbox" id="fast" hidden>
   <div class="panel compact">
@@ -2576,9 +2579,9 @@ function buildPassTimeline(L){
 // ============================================================
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const KS=Math.min(3,Math.max(2,Math.ceil(window.devicePixelRatio||1)));
-cv.width=480*KS;cv.height=560*KS;ctx.setTransform(KS,0,0,KS,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+cv.width=480*KS;cv.height=510*KS;ctx.setTransform(KS,0,0,KS,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
 const FONT_D="'Fraunces',Georgia,serif",FONT_U="'DM Sans',system-ui,sans-serif";
-const W=480,H=560,PX=34,PY=21,BASE=420,SIDE=6.45;
+const W=480,H=510,PX=34,PY=21,BASE=390,SIDE=6.45;
 const SPR={
   off:["..hhhhhh..",".hhHHhhhh.",".hhhhhhhh.",".hhhhhhhh.","...ssss...","JJjjjjjjJJ","JjjjjjjjjJ","sjjjjjjjjs","sjjjjjjjjs","..pppppp..","..pp..pp..","..pp..pp..","..pp..pp..","..cc..cc.."],
   def:["..hhhhhh..",".hhHHhhhh.",".hhhhhhhh.",".hssssssh.","..mmmmmm..","JJjjjjjjJJ","JjjjjjjjjJ","sjjjjjjjjs","sjjjjjjjjs","..pppppp..","..pp..pp..","..pp..pp..","..pp..pp..","..cc..cc.."]
